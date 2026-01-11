@@ -1,0 +1,3654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Boxing 🥊</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥊</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --red-corner: #c41e3a;
+            --red-dark: #8b1528;
+            --blue-corner: #1e4ec4;
+            --blue-dark: #152d8b;
+            --gold: #ffd700;
+            --dark: #1a1a2e;
+            --darker: #12121f;
+            --light: #eee;
+            --success: #2ecc71;
+            --error: #e74c3c;
+            
+            /* Dark mode (default) */
+            --bg-primary: #12121f;
+            --bg-secondary: #1a1a2e;
+            --bg-card: #252540;
+            --text-primary: #eee;
+            --text-secondary: #aaa;
+            --border-color: #333;
+            --input-bg: #1a1a2e;
+            --key-bg: #444;
+            --key-hover: #555;
+            --key-used: #2a2a2a;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a2e;
+            --text-secondary: #666;
+            --border-color: #ddd;
+            --input-bg: #ffffff;
+            --key-bg: #e0e0e0;
+            --key-hover: #d0d0d0;
+            --key-used: #f0f0f0;
+            --dark: #e8e8f0;
+            --darker: #f5f5f7;
+            --light: #1a1a2e;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            background: var(--gold);
+            color: #000;
+        }
+
+        h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        h1 .red { color: var(--red-corner); }
+        h1 .blue { color: var(--blue-corner); }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        /* Phases */
+        .phase {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .phase.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Lobby Styles */
+        .lobby {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .lobby-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            margin-bottom: 30px;
+        }
+
+        .lobby-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .lobby-btn {
+            padding: 20px 30px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lobby-btn.create {
+            background: linear-gradient(135deg, var(--red-corner), var(--red-dark));
+            color: white;
+        }
+
+        .lobby-btn.join {
+            background: linear-gradient(135deg, var(--blue-corner), var(--blue-dark));
+            color: white;
+        }
+
+        .lobby-btn.local {
+            background: linear-gradient(135deg, var(--key-bg), var(--border-color));
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .lobby-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+
+        .lobby-divider {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-secondary);
+            margin: 20px 0;
+        }
+
+        .lobby-divider::before,
+        .lobby-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        /* Game Code Display */
+        .game-code-display {
+            background: var(--bg-secondary);
+            border: 3px solid var(--gold);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .game-code-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .game-code {
+            font-family: 'Oswald', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: var(--gold);
+        }
+
+        .game-code-hint {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 15px;
+        }
+
+        /* Share Buttons */
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .share-btn.copy {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--gold);
+        }
+
+        .share-btn.copy:hover {
+            background: var(--gold);
+            color: #000;
+        }
+
+        .share-btn.share {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+        }
+
+        .share-btn.share:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+        }
+
+        .share-btn.sms {
+            background: linear-gradient(135deg, #5FC9F8, #1DA1F2);
+            color: white;
+        }
+
+        .share-btn.sms:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(29, 161, 242, 0.4);
+        }
+
+        .share-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .copy-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: var(--success);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            z-index: 2000;
+            transition: transform 0.2s;
+        }
+
+        .copy-feedback.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Join Game Input */
+        .join-section {
+            margin: 20px 0;
+        }
+
+        .code-input {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .code-letter {
+            width: 50px;
+            height: 60px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--gold);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .code-letter:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        /* Waiting Screen */
+        .waiting {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .waiting-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .waiting-text {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .waiting-subtext {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Player Badge */
+        .player-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 15px 0;
+        }
+
+        .player-badge.red {
+            background: linear-gradient(135deg, var(--red-corner), var(--red-dark));
+            color: white;
+        }
+
+        .player-badge.blue {
+            background: linear-gradient(135deg, var(--blue-corner), var(--blue-dark));
+            color: white;
+        }
+
+        /* Status Messages */
+        .status-bar {
+            background: var(--bg-secondary);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .status-bar.waiting {
+            border-left: 4px solid var(--gold);
+        }
+
+        .status-bar.your-turn {
+            border-left: 4px solid var(--success);
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .status-bar.opponent-turn {
+            border-left: 4px solid #666;
+        }
+
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .connection-status.connected {
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+
+        .connection-status.disconnected {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--error);
+        }
+
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 30px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), #b8960c);
+            color: #1a1a2e;
+        }
+
+        .btn-secondary {
+            background: #333;
+            color: #aaa;
+        }
+
+        .btn-red {
+            background: linear-gradient(135deg, var(--red-corner), var(--red-dark));
+            color: white;
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, var(--blue-corner), var(--blue-dark));
+            color: white;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Scoreboard */
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        .player-score {
+            text-align: center;
+        }
+
+        .player-score.red .player-name { color: var(--red-corner); }
+        .player-score.blue .player-name { color: var(--blue-corner); }
+
+        .player-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .round-wins {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .round-indicator {
+            text-align: center;
+        }
+
+        .round-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .round-number {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        /* Word Input */
+        .phase-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.3rem;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .phase-title.red { color: var(--red-corner); }
+        .phase-title.blue { color: var(--blue-corner); }
+
+        .word-input-section {
+            text-align: center;
+        }
+
+        .instruction {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .word-input {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .letter-input {
+            width: 50px;
+            height: 60px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .letter-input:focus {
+            border-color: var(--gold);
+        }
+
+        .letter-input.filled {
+            border-color: var(--success);
+            background: rgba(46, 204, 113, 0.1);
+        }
+
+        .letter-input.invalid {
+            border-color: var(--error);
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--error);
+        }
+
+        .word-score {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .word-score span {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        /* Battle Area */
+        .battle-area {
+            text-align: center;
+        }
+
+        .turn-indicator {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .turn-indicator.red {
+            background: linear-gradient(135deg, var(--red-corner), var(--red-dark));
+        }
+
+        .turn-indicator.blue {
+            background: linear-gradient(135deg, var(--blue-corner), var(--blue-dark));
+        }
+
+        .turn-indicator.waiting {
+            background: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .opponent-word {
+            margin-bottom: 25px;
+        }
+
+        .word-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .word-points {
+            color: var(--gold);
+        }
+
+        .word-display {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .letter-box {
+            width: 50px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .letter-box.matched {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .letter-box.revealed {
+            background: rgba(46, 204, 113, 0.2);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .revealed-count {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+        }
+
+        /* Action Section */
+        .action-section {
+            margin-top: 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        /* Keyboard */
+        .keyboard {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .keyboard.active {
+            display: block;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .key {
+            width: 32px;
+            height: 42px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 6px;
+            background: var(--key-bg);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .key:hover:not(:disabled) {
+            background: var(--key-hover);
+            transform: translateY(-2px);
+        }
+
+        .key:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .key.used {
+            background: var(--key-used);
+            color: var(--text-secondary);
+        }
+
+        /* Solve Input */
+        .solve-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .solve-section.active {
+            display: block;
+        }
+
+        .solve-input {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .solve-letter {
+            width: 50px;
+            height: 60px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            background: var(--bg-secondary);
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            color: var(--gold);
+            outline: none;
+        }
+
+        /* Message Toast */
+        .message-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .message-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .message-toast.success {
+            background: var(--success);
+            color: white;
+        }
+
+        .message-toast.error {
+            background: var(--error);
+            color: white;
+        }
+
+        .message-toast.info {
+            background: var(--blue-corner);
+            color: white;
+        }
+
+        /* Round Result */
+        .round-result {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .result-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .revealed-word {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        /* Match Result */
+        .match-result {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .champion-title {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .champion-title.red { color: var(--red-corner); }
+        .champion-title.blue { color: var(--blue-corner); }
+
+        .trophy {
+            font-size: 4rem;
+            margin: 20px 0;
+        }
+
+        /* Version */
+        .version {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Advanced Planning Mode */
+        .word-planning-section {
+            text-align: center;
+        }
+
+        .plan-round {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .plan-label {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            width: 70px;
+            text-align: right;
+        }
+
+        .plan-input .letter-input {
+            width: 42px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+
+        .letters-used {
+            margin: 20px 0;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+
+        .letters-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .letters-label span {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .available-letters {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .letter-chip {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            background: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .letter-chip.used {
+            background: rgba(196, 30, 58, 0.3);
+            color: var(--red-corner);
+            text-decoration: line-through;
+        }
+
+        .letter-chip.available {
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--success);
+        }
+
+        .plan-status {
+            min-height: 24px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+
+        .plan-status.error {
+            color: var(--error);
+        }
+
+        .plan-status.success {
+            color: var(--success);
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 400px) {
+            .letter-input, .letter-box, .solve-letter, .code-letter {
+                width: 42px;
+                height: 52px;
+                font-size: 1.5rem;
+            }
+
+            .key {
+                width: 28px;
+                height: 38px;
+                font-size: 0.8rem;
+            }
+
+            .game-code {
+                font-size: 2.5rem;
+            }
+
+            .plan-input .letter-input {
+                width: 38px;
+                height: 46px;
+                font-size: 1.3rem;
+            }
+
+            .plan-label {
+                width: 55px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* User Profile & Auth Styles */
+        .user-bar {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            cursor: pointer;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .user-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.9rem;
+            color: var(--light);
+        }
+
+        .user-rating {
+            font-size: 0.75rem;
+            color: var(--gold);
+        }
+
+        .sign-in-btn {
+            padding: 8px 16px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.85rem;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .sign-in-btn:hover {
+            background: #3367d6;
+            transform: scale(1.05);
+        }
+
+        .sign-in-btn img {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Rank Badges */
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .rank-badge.rookie { background: #cd7f32; color: #fff; }
+        .rank-badge.contender { background: #c0c0c0; color: #333; }
+        .rank-badge.fighter { background: #ffd700; color: #333; }
+        .rank-badge.champion { background: linear-gradient(135deg, #ffd700, #ff8c00); color: #333; }
+        .rank-badge.legend { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; }
+
+        /* Profile Modal */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-modal.active {
+            display: flex;
+        }
+
+        .profile-content {
+            background: var(--dark);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 400px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid var(--gold);
+        }
+
+        .profile-details h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            color: var(--light);
+            margin-bottom: 5px;
+        }
+
+        .profile-rating-large {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2rem;
+            color: var(--gold);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            color: var(--light);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .match-history {
+            margin-top: 20px;
+        }
+
+        .match-history h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .match-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .match-opponent {
+            font-size: 0.9rem;
+        }
+
+        .match-result {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .match-result.win { color: var(--success); }
+        .match-result.loss { color: var(--error); }
+
+        .match-rating-change {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .match-rating-change.positive { color: var(--success); }
+        .match-rating-change.negative { color: var(--error); }
+
+        /* Leaderboard */
+        .leaderboard-btn {
+            position: fixed;
+            top: 10px;
+            right: 60px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 8px;
+            color: var(--gold);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .leaderboard-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .leaderboard-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .leaderboard-modal.active {
+            display: flex;
+        }
+
+        .leaderboard-content {
+            background: var(--dark);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .leaderboard-content h2 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-bottom: 8px;
+        }
+
+        .leaderboard-item.me {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid var(--gold);
+        }
+
+        .leaderboard-rank {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.2rem;
+            color: #888;
+            width: 30px;
+            text-align: center;
+        }
+
+        .leaderboard-rank.top-3 { color: var(--gold); }
+
+        .leaderboard-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+        }
+
+        .leaderboard-name {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .leaderboard-rating {
+            font-family: 'Oswald', sans-serif;
+            font-size: 1.1rem;
+            color: var(--gold);
+        }
+
+        /* Rated match indicator */
+        .rated-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(255, 215, 0, 0.2);
+            border: 1px solid var(--gold);
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .unrated-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+    </style>
+</head>
+<body>
+    <!-- User Bar (Top Left) -->
+    <div class="user-bar" id="user-bar">
+        <button class="sign-in-btn" id="sign-in-btn" onclick="signInWithGoogle()">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Sign In
+        </button>
+        <div id="user-profile" style="display: none;" onclick="showProfile()">
+            <img class="user-avatar" id="user-avatar" src="" alt="Avatar">
+            <div class="user-info">
+                <span class="user-name" id="user-name">Player</span>
+                <span class="user-rating" id="user-rating">1200</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Button -->
+    <button class="leaderboard-btn" onclick="showLeaderboard()" title="Leaderboard">🏆</button>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Mode" id="theme-toggle">🌙</button>
+
+    <h1><span class="red">Word</span> <span class="blue">Boxing</span> 🥊</h1>
+    
+    <!-- Connection Status -->
+    <div class="connection-status connected" id="connection-status">
+        <div class="connection-dot"></div>
+        <span>Connected</span>
+    </div>
+
+    <div class="container">
+        <!-- Phase: Lobby -->
+        <div class="phase active" id="phase-lobby">
+            <div class="lobby">
+                <div class="lobby-title">⚔️ Word Boxing</div>
+                <div class="lobby-options">
+                    <button class="lobby-btn local" onclick="startPassAndPlay()">
+                        📱 Pass & Play <span class="unrated-badge">Unrated</span>
+                    </button>
+                </div>
+                <div class="lobby-divider">online multiplayer</div>
+                <div class="lobby-options">
+                    <button class="lobby-btn create" onclick="createGame()">
+                        🥊 Create Game <span class="rated-badge" id="create-rated-badge">Rated</span>
+                    </button>
+                    <button class="lobby-btn join" onclick="showJoinGame()">
+                        🎯 Join Game
+                    </button>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase: Pass & Play - Pass to Red -->
+        <div class="phase" id="phase-pass-red">
+            <div class="waiting">
+                <div class="player-badge red">🥊 Red Corner</div>
+                <div style="font-size: 1.3rem; margin: 20px 0;">Pass the device to <strong style="color: var(--red-corner);">Red</strong></div>
+                <button class="btn btn-red" onclick="continueAsPlayer('red')" style="margin-top: 20px; font-size: 1.2rem; padding: 15px 40px;">I'm Red - Continue</button>
+            </div>
+        </div>
+
+        <!-- Phase: Pass & Play - Pass to Blue -->
+        <div class="phase" id="phase-pass-blue">
+            <div class="waiting">
+                <div class="player-badge blue">Blue Corner 🥊</div>
+                <div style="font-size: 1.3rem; margin: 20px 0;">Pass the device to <strong style="color: var(--blue-corner);">Blue</strong></div>
+                <button class="btn btn-blue" onclick="continueAsPlayer('blue')" style="margin-top: 20px; font-size: 1.2rem; padding: 15px 40px;">I'm Blue - Continue</button>
+            </div>
+        </div>
+
+        <!-- Phase: Create Game - Waiting for Opponent -->
+        <div class="phase" id="phase-create-waiting">
+            <div class="waiting">
+                <div class="player-badge red">You are Red Corner</div>
+                <div class="game-code-display">
+                    <div class="game-code-label">Share this code with your opponent:</div>
+                    <div class="game-code" id="display-game-code">-----</div>
+                    <div class="share-buttons">
+                        <button class="share-btn copy" onclick="copyGameCode()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            Copy Code
+                        </button>
+                        <button class="share-btn share" onclick="shareGameCode()" id="share-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                            Share
+                        </button>
+                    </div>
+                    <div class="game-code-hint">📱 Send the code to start playing!</div>
+                </div>
+                <div class="waiting-spinner"></div>
+                <div class="waiting-text">Waiting for opponent to join...</div>
+                <button class="btn btn-secondary" onclick="cancelGame()" style="margin-top: 20px;">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Copy Feedback -->
+        <div class="copy-feedback" id="copy-feedback">✓ Code Copied!</div>
+
+        <!-- Phase: Join Game -->
+        <div class="phase" id="phase-join">
+            <div class="lobby">
+                <div class="lobby-title">🎯 Join Game</div>
+                <p class="instruction">Enter the 5-letter game code:</p>
+                <div class="join-section">
+                    <div class="code-input" id="code-input">
+                        <input type="text" class="code-letter" maxlength="1" data-index="0">
+                        <input type="text" class="code-letter" maxlength="1" data-index="1">
+                        <input type="text" class="code-letter" maxlength="1" data-index="2">
+                        <input type="text" class="code-letter" maxlength="1" data-index="3">
+                        <input type="text" class="code-letter" maxlength="1" data-index="4">
+                    </div>
+                    <button class="btn btn-blue" id="join-btn" onclick="joinGame()" disabled>Join Game</button>
+                </div>
+                <button class="btn btn-secondary" onclick="showPhase('phase-lobby')" style="margin-top: 15px;">Back</button>
+            </div>
+        </div>
+
+        <!-- Phase: Joined - Waiting to Start -->
+        <div class="phase" id="phase-join-waiting">
+            <div class="waiting">
+                <div class="player-badge blue">You are Blue Corner</div>
+                <div class="waiting-spinner"></div>
+                <div class="waiting-text">Joined game!</div>
+                <div class="waiting-subtext">Waiting for game to start...</div>
+            </div>
+        </div>
+
+        <!-- Phase: Mode Selection (Host only) -->
+        <div class="phase" id="phase-mode-select">
+            <div class="lobby">
+                <div class="lobby-title">Choose Game Mode</div>
+                <div class="lobby-options">
+                    <button class="lobby-btn create" onclick="selectMode('beginner')">
+                        🥊 Beginner<br>
+                        <span style="font-size: 0.8rem; opacity: 0.8;">Pick new word each round</span>
+                    </button>
+                    <button class="lobby-btn join" onclick="selectMode('advanced')">
+                        🏆 Advanced<br>
+                        <span style="font-size: 0.8rem; opacity: 0.8;">Plan all 3 words upfront</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scoreboard (shown during game) -->
+        <div class="scoreboard" id="scoreboard" style="display: none;">
+            <div class="player-score red">
+                <div class="player-name">🥊 Red</div>
+                <div class="round-wins" id="red-wins">0</div>
+            </div>
+            <div class="round-indicator">
+                <div class="round-label">Round</div>
+                <div class="round-number" id="round-number">1</div>
+            </div>
+            <div class="player-score blue">
+                <div class="player-name">Blue 🥊</div>
+                <div class="round-wins" id="blue-wins">0</div>
+            </div>
+        </div>
+
+        <!-- Mode Badge (shown during game) -->
+        <div class="mode-badge-container" id="mode-badge-container" style="display: none; text-align: center; margin-bottom: 10px;">
+            <span id="mode-badge" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-family: 'Oswald', sans-serif; font-size: 0.8rem; letter-spacing: 0.1em; background: linear-gradient(135deg, #4a3a00, #2a2200); border: 1px solid var(--gold); color: var(--gold);">ADVANCED</span>
+        </div>
+
+        <!-- Phase: Advanced Word Planning -->
+        <div class="phase" id="phase-word-planning">
+            <div class="phase-title" id="planning-title">Plan Your 3 Words</div>
+            <div class="word-planning-section">
+                <p class="instruction">Enter all 3 words. No letter can repeat across words!</p>
+                
+                <div class="plan-round">
+                    <div class="plan-label">Round 1:</div>
+                    <div class="word-input plan-input" id="plan-word-1"></div>
+                </div>
+                <div class="plan-round">
+                    <div class="plan-label">Round 2:</div>
+                    <div class="word-input plan-input" id="plan-word-2"></div>
+                </div>
+                <div class="plan-round">
+                    <div class="plan-label">Round 3:</div>
+                    <div class="word-input plan-input" id="plan-word-3"></div>
+                </div>
+                
+                <div class="letters-used">
+                    <div class="letters-label">Letters used: <span id="letters-used-count">0</span>/26</div>
+                    <div class="available-letters" id="available-letters"></div>
+                </div>
+                
+                <div class="plan-status" id="plan-status"></div>
+                <button class="btn btn-primary" id="submit-plan-btn" onclick="submitPlan()" disabled>Lock In All Words</button>
+            </div>
+        </div>
+
+        <!-- Phase: Waiting for Opponent's Plan -->
+        <div class="phase" id="phase-waiting-plan">
+            <div class="waiting">
+                <div class="waiting-spinner"></div>
+                <div class="waiting-text">Waiting for opponent to plan their words...</div>
+                <div class="waiting-subtext">You're all set! 3 words locked in.</div>
+            </div>
+        </div>
+
+        <!-- Phase: Word Input (Beginner Mode) -->
+        <div class="phase" id="phase-word-input">
+            <div class="phase-title" id="input-title">Enter Your Word</div>
+            <div class="word-input-section">
+                <p class="instruction">Enter a 5-letter word for your opponent to guess</p>
+                <div class="word-input" id="word-input"></div>
+                <div class="word-score">Word Score: <span id="word-score">0</span> pts</div>
+                <button class="btn btn-primary" id="submit-word-btn" onclick="submitWord()" disabled>Submit Word</button>
+            </div>
+        </div>
+
+        <!-- Phase: Waiting for Opponent's Word -->
+        <div class="phase" id="phase-waiting-word">
+            <div class="waiting">
+                <div class="waiting-spinner"></div>
+                <div class="waiting-text">Waiting for opponent's word...</div>
+            </div>
+        </div>
+
+        <!-- Phase: Battle -->
+        <div class="phase" id="phase-battle">
+            <div class="battle-area">
+                <div class="status-bar" id="battle-status">
+                    <span id="battle-status-text">Battle!</span>
+                </div>
+                
+                <div class="opponent-word">
+                    <div class="word-label">Opponent's Word</div>
+                    <div class="word-display" id="opponent-word-display"></div>
+                    <div class="revealed-count">Opponent sees <span id="revealed-count">0</span> of 5 letters in YOUR word</div>
+                </div>
+
+                <div class="action-section" id="action-section">
+                    <div class="action-buttons" id="action-buttons">
+                        <button class="btn btn-secondary" onclick="showGuessMode()">Guess Letter</button>
+                        <button class="btn btn-primary" onclick="showSolveMode()">Solve Word</button>
+                    </div>
+
+                    <div class="keyboard" id="keyboard"></div>
+
+                    <div class="solve-section" id="solve-section">
+                        <div class="solve-input" id="solve-input"></div>
+                        <button class="btn btn-primary" onclick="attemptSolve()">Submit Answer</button>
+                        <button class="btn btn-secondary" onclick="cancelSolve()" style="margin-left: 10px;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase: Waiting for Opponent's Turn -->
+        <div class="phase" id="phase-waiting-turn">
+            <div class="battle-area">
+                <div class="status-bar opponent-turn">
+                    <span>⏳ Opponent is thinking...</span>
+                </div>
+                
+                <div class="opponent-word">
+                    <div class="word-label">Opponent's Word</div>
+                    <div class="word-display" id="waiting-opponent-display"></div>
+                    <div class="revealed-count">Opponent sees <span id="waiting-revealed-count">0</span> of 5 letters in YOUR word</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase: Round Result -->
+        <div class="phase" id="phase-round-result">
+            <div class="round-result">
+                <div class="result-title" id="round-winner-title">Round Over!</div>
+                <div class="revealed-word">
+                    <div>Your word: <span id="reveal-your-word">-----</span></div>
+                    <div>Their word: <span id="reveal-their-word">-----</span></div>
+                </div>
+                <div class="waiting-text" id="round-result-status">Waiting for next round...</div>
+            </div>
+        </div>
+
+        <!-- Phase: Match Result -->
+        <div class="phase" id="phase-match-result">
+            <div class="match-result">
+                <div class="trophy">🏆</div>
+                <div class="champion-title" id="champion-title">Champion!</div>
+                <div class="revealed-word">
+                    Final Score: <span id="final-score">0 - 0</span>
+                </div>
+                <button class="btn btn-primary" onclick="rematch()" style="margin-top: 20px;">Rematch</button>
+                <button class="btn btn-secondary" onclick="exitToLobby()" style="margin-top: 10px;">Exit to Lobby</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Toast -->
+    <div class="message-toast" id="message-toast"></div>
+
+    <!-- Profile Modal -->
+    <div class="profile-modal" id="profile-modal" onclick="closeProfileModal(event)">
+        <div class="profile-content" onclick="event.stopPropagation()">
+            <div class="profile-header">
+                <img class="profile-avatar" id="profile-avatar" src="" alt="Avatar">
+                <div class="profile-details">
+                    <h2 id="profile-name">Player Name</h2>
+                    <div id="profile-rank-badge"></div>
+                </div>
+            </div>
+            <div class="profile-rating-large" id="profile-rating">1200</div>
+            <div style="font-size: 0.85rem; color: #888; margin-bottom: 20px;">
+                Peak: <span id="profile-peak-rating">1200</span>
+            </div>
+            
+            <div class="profile-stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="profile-wins">0</div>
+                    <div class="stat-label">Wins</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="profile-losses">0</div>
+                    <div class="stat-label">Losses</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="profile-streak">0</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+            </div>
+            
+            <div class="match-history">
+                <h3>Recent Matches</h3>
+                <div id="match-history-list">
+                    <p style="color: #666; text-align: center; padding: 20px;">No matches yet</p>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="signOut()" style="width: 100%; margin-top: 20px;">Sign Out</button>
+            <button class="btn btn-secondary" onclick="closeProfile()" style="width: 100%; margin-top: 10px;">Close</button>
+        </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div class="leaderboard-modal" id="leaderboard-modal" onclick="closeLeaderboardModal(event)">
+        <div class="leaderboard-content" onclick="event.stopPropagation()">
+            <h2>🏆 Leaderboard</h2>
+            <ul class="leaderboard-list" id="leaderboard-list">
+                <li style="color: #666; text-align: center; padding: 20px;">Loading...</li>
+            </ul>
+            <button class="btn btn-secondary" onclick="closeLeaderboard()" style="width: 100%; margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <div class="version">v0.6.9 • Word Boxing</div>
+
+    <script>
+        // Firebase Configuration - Word Boxing Production
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQVwn8vOrFTzLlm2MYIPBwgZV2xR9AuhM",
+            authDomain: "word-boxing.firebaseapp.com",
+            databaseURL: "https://word-boxing-default-rtdb.firebaseio.com",
+            projectId: "word-boxing",
+            storageBucket: "word-boxing.firebasestorage.app",
+            messagingSenderId: "300155036194",
+            appId: "1:300155036194:web:b35463e6f9fbb04d7fe07b",
+            measurementId: "G-XRL2SVN0YF"
+        };
+
+        // Initialize Firebase
+        let db = null;
+        let auth = null;
+        let gameRef = null;
+        let isFirebaseReady = false;
+
+        // Try to initialize Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            auth = firebase.auth();
+            isFirebaseReady = true;
+            console.log('Firebase initialized');
+        } catch (e) {
+            console.warn('Firebase not available, running in demo mode');
+            isFirebaseReady = false;
+        }
+
+        // ============ USER STATE ============
+        
+        let currentUser = null;
+        let userProfile = {
+            odid: null,
+            displayName: 'Guest',
+            photoURL: null,
+            rating: 1200,
+            peakRating: 1200,
+            gamesPlayed: 0,
+            wins: 0,
+            losses: 0,
+            winStreak: 0,
+            bestStreak: 0,
+            matchHistory: []
+        };
+
+        // ELO Constants
+        const ELO_K_FACTOR = 32;
+        const ELO_K_PROVISIONAL = 48; // Higher K for first 10 games
+        const PROVISIONAL_GAMES = 10;
+        const STARTING_RATING = 1200;
+
+        // Rank Tiers
+        const RANK_TIERS = [
+            { name: 'Rookie', min: 0, max: 999, icon: '🥉', class: 'rookie' },
+            { name: 'Contender', min: 1000, max: 1199, icon: '🥈', class: 'contender' },
+            { name: 'Fighter', min: 1200, max: 1399, icon: '🥇', class: 'fighter' },
+            { name: 'Champion', min: 1400, max: 1599, icon: '🏆', class: 'champion' },
+            { name: 'Legend', min: 1600, max: 9999, icon: '👑', class: 'legend' }
+        ];
+
+        function getRankTier(rating) {
+            return RANK_TIERS.find(tier => rating >= tier.min && rating <= tier.max) || RANK_TIERS[0];
+        }
+
+        // ============ AUTHENTICATION ============
+
+        function signInWithGoogle() {
+            if (!isFirebaseReady || !auth) {
+                showMessage('Sign-in not available in demo mode', 'error');
+                return;
+            }
+            
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    console.log('Signed in:', result.user.displayName);
+                    showMessage(`Welcome, ${result.user.displayName}!`, 'success');
+                })
+                .catch((error) => {
+                    console.error('Sign-in error:', error);
+                    showMessage('Sign-in failed: ' + error.message, 'error');
+                });
+        }
+
+        function signOut() {
+            if (auth) {
+                auth.signOut().then(() => {
+                    showMessage('Signed out', 'info');
+                    closeProfile();
+                });
+            }
+        }
+
+        function handleAuthStateChange(user) {
+            currentUser = user;
+            
+            if (user) {
+                // User is signed in
+                document.getElementById('sign-in-btn').style.display = 'none';
+                document.getElementById('user-profile').style.display = 'flex';
+                document.getElementById('user-avatar').src = user.photoURL || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="%23666"/><text x="50" y="65" text-anchor="middle" font-size="40" fill="%23fff">?</text></svg>';
+                document.getElementById('user-name').textContent = user.displayName || 'Player';
+                
+                // Load user profile from database
+                loadUserProfile(user.uid);
+                
+                // Show rated badge on create game
+                document.getElementById('create-rated-badge').style.display = 'inline-block';
+            } else {
+                // User is signed out
+                document.getElementById('sign-in-btn').style.display = 'flex';
+                document.getElementById('user-profile').style.display = 'none';
+                
+                // Reset to guest profile
+                userProfile = {
+                    odid: null,
+                    displayName: 'Guest',
+                    photoURL: null,
+                    rating: 1200,
+                    peakRating: 1200,
+                    gamesPlayed: 0,
+                    wins: 0,
+                    losses: 0,
+                    winStreak: 0,
+                    bestStreak: 0,
+                    matchHistory: []
+                };
+                
+                // Hide rated badge (guests can't play rated)
+                document.getElementById('create-rated-badge').style.display = 'none';
+            }
+        }
+
+        async function loadUserProfile(odid) {
+            if (!db) return;
+            
+            try {
+                const snapshot = await db.ref('users/' + odid).once('value');
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    userProfile = {
+                        odid: odid,
+                        displayName: data.displayName || currentUser.displayName,
+                        photoURL: data.photoURL || currentUser.photoURL,
+                        rating: data.rating || STARTING_RATING,
+                        peakRating: data.peakRating || STARTING_RATING,
+                        gamesPlayed: data.gamesPlayed || 0,
+                        wins: data.wins || 0,
+                        losses: data.losses || 0,
+                        winStreak: data.winStreak || 0,
+                        bestStreak: data.bestStreak || 0,
+                        matchHistory: data.matchHistory || []
+                    };
+                } else {
+                    // Create new user profile
+                    userProfile = {
+                        odid: odid,
+                        displayName: currentUser.displayName,
+                        photoURL: currentUser.photoURL,
+                        rating: STARTING_RATING,
+                        peakRating: STARTING_RATING,
+                        gamesPlayed: 0,
+                        wins: 0,
+                        losses: 0,
+                        winStreak: 0,
+                        bestStreak: 0,
+                        matchHistory: []
+                    };
+                    
+                    await db.ref('users/' + odid).set(userProfile);
+                    
+                    // Add to leaderboard
+                    await db.ref('leaderboard/' + odid).set(STARTING_RATING);
+                }
+                
+                // Update UI
+                document.getElementById('user-rating').textContent = userProfile.rating;
+                
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        async function saveUserProfile() {
+            if (!db || !currentUser) return;
+            
+            try {
+                await db.ref('users/' + currentUser.uid).update({
+                    displayName: userProfile.displayName,
+                    photoURL: userProfile.photoURL,
+                    rating: userProfile.rating,
+                    peakRating: userProfile.peakRating,
+                    gamesPlayed: userProfile.gamesPlayed,
+                    wins: userProfile.wins,
+                    losses: userProfile.losses,
+                    winStreak: userProfile.winStreak,
+                    bestStreak: userProfile.bestStreak,
+                    matchHistory: userProfile.matchHistory.slice(0, 20) // Keep last 20
+                });
+                
+                // Update leaderboard
+                await db.ref('leaderboard/' + currentUser.uid).set(userProfile.rating);
+                
+            } catch (error) {
+                console.error('Error saving profile:', error);
+            }
+        }
+
+        // ============ ELO CALCULATIONS ============
+
+        function calculateExpectedScore(myRating, opponentRating) {
+            return 1 / (1 + Math.pow(10, (opponentRating - myRating) / 400));
+        }
+
+        function calculateNewRating(myRating, opponentRating, won, gamesPlayed) {
+            const expected = calculateExpectedScore(myRating, opponentRating);
+            const actual = won ? 1 : 0;
+            const k = gamesPlayed < PROVISIONAL_GAMES ? ELO_K_PROVISIONAL : ELO_K_FACTOR;
+            
+            return Math.round(myRating + k * (actual - expected));
+        }
+
+        async function recordMatchResult(opponentId, opponentName, opponentRating, won, score) {
+            if (!currentUser || passPlayState.active) return; // Don't record pass & play
+            
+            const oldRating = userProfile.rating;
+            const newRating = calculateNewRating(oldRating, opponentRating, won, userProfile.gamesPlayed);
+            const ratingChange = newRating - oldRating;
+            
+            // Update profile
+            userProfile.rating = newRating;
+            userProfile.gamesPlayed++;
+            
+            if (won) {
+                userProfile.wins++;
+                userProfile.winStreak++;
+                if (userProfile.winStreak > userProfile.bestStreak) {
+                    userProfile.bestStreak = userProfile.winStreak;
+                }
+            } else {
+                userProfile.losses++;
+                userProfile.winStreak = 0;
+            }
+            
+            if (newRating > userProfile.peakRating) {
+                userProfile.peakRating = newRating;
+            }
+            
+            // Add to match history
+            userProfile.matchHistory.unshift({
+                odponentId: opponentId,
+                opponentName: opponentName,
+                opponentRating: opponentRating,
+                result: won ? 'win' : 'loss',
+                score: score,
+                ratingChange: ratingChange,
+                timestamp: Date.now()
+            });
+            
+            // Keep only last 20 matches
+            if (userProfile.matchHistory.length > 20) {
+                userProfile.matchHistory = userProfile.matchHistory.slice(0, 20);
+            }
+            
+            // Update UI
+            document.getElementById('user-rating').textContent = userProfile.rating;
+            
+            // Save to database
+            await saveUserProfile();
+            
+            // Show rating change
+            const changeText = ratingChange >= 0 ? `+${ratingChange}` : `${ratingChange}`;
+            showMessage(`Rating: ${oldRating} → ${newRating} (${changeText})`, ratingChange >= 0 ? 'success' : 'error');
+        }
+
+        // ============ PROFILE MODAL ============
+
+        function showProfile() {
+            if (!currentUser) return;
+            
+            const modal = document.getElementById('profile-modal');
+            modal.classList.add('active');
+            
+            // Fill profile data
+            document.getElementById('profile-avatar').src = userProfile.photoURL || currentUser.photoURL || '';
+            document.getElementById('profile-name').textContent = userProfile.displayName;
+            document.getElementById('profile-rating').textContent = userProfile.rating;
+            document.getElementById('profile-peak-rating').textContent = userProfile.peakRating;
+            document.getElementById('profile-wins').textContent = userProfile.wins;
+            document.getElementById('profile-losses').textContent = userProfile.losses;
+            document.getElementById('profile-streak').textContent = userProfile.winStreak;
+            
+            // Rank badge
+            const tier = getRankTier(userProfile.rating);
+            document.getElementById('profile-rank-badge').innerHTML = `<span class="rank-badge ${tier.class}">${tier.icon} ${tier.name}</span>`;
+            
+            // Match history
+            const historyEl = document.getElementById('match-history-list');
+            if (userProfile.matchHistory.length === 0) {
+                historyEl.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">No matches yet</p>';
+            } else {
+                historyEl.innerHTML = userProfile.matchHistory.slice(0, 10).map(match => `
+                    <div class="match-item">
+                        <span class="match-opponent">${match.opponentName}</span>
+                        <span class="match-result ${match.result}">${match.result.toUpperCase()} ${match.score}</span>
+                        <span class="match-rating-change ${match.ratingChange >= 0 ? 'positive' : 'negative'}">
+                            ${match.ratingChange >= 0 ? '+' : ''}${match.ratingChange}
+                        </span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function closeProfile() {
+            document.getElementById('profile-modal').classList.remove('active');
+        }
+
+        function closeProfileModal(event) {
+            if (event.target.id === 'profile-modal') {
+                closeProfile();
+            }
+        }
+
+        // ============ LEADERBOARD ============
+
+        async function showLeaderboard() {
+            const modal = document.getElementById('leaderboard-modal');
+            modal.classList.add('active');
+            
+            const listEl = document.getElementById('leaderboard-list');
+            listEl.innerHTML = '<li style="color: #666; text-align: center; padding: 20px;">Loading...</li>';
+            
+            if (!db) {
+                listEl.innerHTML = '<li style="color: #666; text-align: center; padding: 20px;">Leaderboard unavailable in demo mode</li>';
+                return;
+            }
+            
+            try {
+                // Get top 50 from leaderboard
+                const snapshot = await db.ref('leaderboard')
+                    .orderByValue()
+                    .limitToLast(50)
+                    .once('value');
+                
+                const leaderboardData = [];
+                snapshot.forEach((child) => {
+                    leaderboardData.push({
+                        odid: child.key,
+                        rating: child.val()
+                    });
+                });
+                
+                // Sort descending
+                leaderboardData.sort((a, b) => b.rating - a.rating);
+                
+                if (leaderboardData.length === 0) {
+                    listEl.innerHTML = '<li style="color: #666; text-align: center; padding: 20px;">No players yet</li>';
+                    return;
+                }
+                
+                // Fetch display names for each user
+                const leaderboardHtml = await Promise.all(leaderboardData.map(async (entry, index) => {
+                    let displayName = 'Unknown';
+                    let photoURL = '';
+                    
+                    try {
+                        const userSnap = await db.ref('users/' + entry.odid + '/displayName').once('value');
+                        const photoSnap = await db.ref('users/' + entry.odid + '/photoURL').once('value');
+                        displayName = userSnap.val() || 'Unknown';
+                        photoURL = photoSnap.val() || '';
+                    } catch (e) {}
+                    
+                    const isMe = currentUser && entry.odid === currentUser.uid;
+                    const tier = getRankTier(entry.rating);
+                    
+                    return `
+                        <li class="leaderboard-item ${isMe ? 'me' : ''}">
+                            <span class="leaderboard-rank ${index < 3 ? 'top-3' : ''}">${index + 1}</span>
+                            <img class="leaderboard-avatar" src="${photoURL || 'data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 100 100&quot;><circle cx=&quot;50&quot; cy=&quot;50&quot; r=&quot;50&quot; fill=&quot;%23666&quot;/></svg>'}" alt="">
+                            <span class="leaderboard-name">${displayName} ${isMe ? '(You)' : ''}</span>
+                            <span class="rank-badge ${tier.class}">${tier.icon}</span>
+                            <span class="leaderboard-rating">${entry.rating}</span>
+                        </li>
+                    `;
+                }));
+                
+                listEl.innerHTML = leaderboardHtml.join('');
+                
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                listEl.innerHTML = '<li style="color: #666; text-align: center; padding: 20px;">Error loading leaderboard</li>';
+            }
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('leaderboard-modal').classList.remove('active');
+        }
+
+        function closeLeaderboardModal(event) {
+            if (event.target.id === 'leaderboard-modal') {
+                closeLeaderboard();
+            }
+        }
+
+        // ============ DEVICE ID (for non-authenticated games) ============
+
+        // Generate device ID for this session
+        const deviceId = localStorage.getItem('wordboxing_device_id') || generateDeviceId();
+        localStorage.setItem('wordboxing_device_id', deviceId);
+
+        function generateDeviceId() {
+            return 'dev_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        }
+
+        // Game State
+        let gameState = {
+            gameCode: null,
+            myRole: null, // 'red' or 'blue'
+            mode: 'beginner',
+            status: 'lobby', // 'lobby', 'waiting', 'setup', 'battle', 'finished'
+            round: 1,
+            myWord: '',
+            opponentWord: '',
+            myScore: 0,
+            opponentScore: 0,
+            myWins: 0,
+            opponentWins: 0,
+            currentTurn: null,
+            myRevealed: [false, false, false, false, false], // What I've revealed in opponent's word
+            opponentRevealed: [false, false, false, false, false], // What opponent has revealed in MY word
+            myGuessedLetters: new Set(),
+            isMyTurn: false,
+            // Advanced mode
+            myPlannedWords: ['', '', ''],
+            opponentPlannedWords: ['', '', ''],
+            // Opponent info for rated games
+            opponentUserId: null,
+            opponentDisplayName: 'Opponent',
+            opponentUserRating: 1200,
+            isRatedGame: false
+        };
+
+        // Word list for validation (subset for demo)
+        const VALID_WORDS = new Set("ABACK,ABASE,ABATE,ABBEY,ABBOT,ABHOR,ABIDE,ABLED,ABODE,ABORT,ABOUT,ABOVE,ABUSE,ABYSS,ACORN,ACRID,ACTOR,ACUTE,ADAGE,ADAPT,ADDAX,ADDED,ADDER,ADDLE,ADEPT,ADMIN,ADMIT,ADOBE,ADOPT,ADORE,ADORN,ADULT,AFFIX,AFIRE,AFOOT,AFOUL,AFTER,AGAIN,AGAPE,AGATE,AGENT,AGILE,AGING,AGLOW,AGONY,AGREE,AHEAD,AIDER,AISLE,ALARM,ALBUM,ALERT,ALGAE,ALIBI,ALIEN,ALIGN,ALIKE,ALIVE,ALLAY,ALLEY,ALLOT,ALLOW,ALLOY,ALOFT,ALONE,ALONG,ALOOF,ALOUD,ALPHA,ALTAR,ALTER,AMASS,AMAZE,AMBER,AMBLE,AMEND,AMISS,AMITY,AMONG,AMPLE,AMPLY,AMUSE,ANGEL,ANGER,ANGLE,ANGRY,ANGST,ANIME,ANKLE,ANNEX,ANNOY,ANNUL,ANODE,ANTIC,ANVIL,AORTA,APART,APHID,APING,APNEA,APPLE,APPLY,APRON,APTLY,ARBOR,ARDOR,ARENA,ARGUE,ARISE,ARMOR,AROMA,AROSE,ARRAY,ARROW,ARSON,ARTSY,ASCOT,ASHEN,ASIDE,ASKEW,ASSAY,ASSET,ATOLL,ATONE,ATTIC,AUDIO,AUDIT,AUGUR,AUNTY,AVAIL,AVERT,AVIAN,AVOID,AWAIT,AWAKE,AWARD,AWARE,AWASH,AWFUL,AWOKE,AXIAL,AXIOM,AXION,AZTEC,BABEL,BACCY,BACON,BADGE,BADLY,BAGEL,BAGGY,BAKER,BALER,BALKY,BALLS,BALMY,BANAL,BANDY,BANES,BANJO,BANKS,BARBS,BARDS,BARED,BARER,BARES,BARFS,BARGE,BARKS,BARMY,BARNS,BARON,BASAL,BASED,BASER,BASES,BASIC,BASIL,BASIN,BASIS,BASKS,BASTE,BATCH,BATED,BATHS,BATON,BATTY,BAULK,BAWDY,BAWLS,BAYOU,BEACH,BEADS,BEADY,BEAKS,BEAMS,BEAMY,BEANS,BEARD,BEARS,BEAST,BEATS,BEAUS,BEAUT,BEBOP,BECKS,BEECH,BEEFS,BEEFY,BEEPS,BEERS,BEERY,BEETS,BEFIT,BEGAN,BEGAT,BEGET,BEGIN,BEGOT,BEGUN,BEING,BELAY,BELCH,BELIE,BELLE,BELLS,BELLY,BELOW,BELTS,BENCH,BENDS,BENDY,BENNE,BENTO,BERET,BERRY,BERTH,BESET,BESOT,BESTS,BETAS,BETEL,BEVEL,BEVVY,BIBLE,BICEP,BIDDY,BIDED,BIDER,BIDES,BIDET,BIDIS,BIFFY,BIFID,BIGGY,BIGOT,BIKED,BIKER,BIKES,BILGE,BILGY,BILKS,BILLS,BILLY,BIMBO,BINGE,BINGO,BIOME,BIOTA,BIPOD,BIRCH,BIRDS,BIRTH,BISON,BITCH,BITER,BITES,BITSY,BITTY,BLACK,BLADE,BLAME,BLAND,BLANK,BLARE,BLASE,BLAST,BLAZE,BLEAK,BLEAT,BLEED,BLEEP,BLEND,BLESS,BLIMP,BLIND,BLING,BLINI,BLINK,BLIPS,BLISS,BLITZ,BLOAT,BLOBS,BLOCK,BLOKE,BLOND,BLOOD,BLOOM,BLOWN,BLOWS,BLOWY,BLUED,BLUER,BLUES,BLUEY,BLUFF,BLUME,BLUNT,BLURB,BLURS,BLURT,BLUSH,BOARD,BOARS,BOAST,BOATS,BOBBY,BOCCE,BODED,BODES,BODGE,BOGEY,BOGGY,BOGIE,BOGUS,BOILS,BOLAS,BOLDS,BOLLS,BOLTS,BOMBE,BOMBS,BONDS,BONED,BONER,BONES,BONEY,BONGO,BONKS,BONNY,BONUS,BOOBS,BOOBY,BOOED,BOOKS,BOOMS,BOOMY,BOONS,BOORS,BOOST,BOOTH,BOOTS,BOOTY,BOOZE,BOOZY,BORAX,BORED,BORER,BORES,BORNE,BORON,BOSOM,BOSSY,BOTCH,BOUGH,BOUND,BOUTS,BOWED,BOWEL,BOWER,BOWLS,BOXED,BOXER,BOXES,BRACE,BRACT,BRAGS,BRAID,BRAIN,BRAKE,BRAND,BRASH,BRASS,BRATS,BRAVE,BRAVO,BRAWL,BRAWN,BRAYS,BREAD,BREAK,BREAM,BREED,BREWS,BRIAR,BRIBE,BRICK,BRIDE,BRIEF,BRIER,BRINE,BRING,BRINK,BRINY,BRISK,BROAD,BROIL,BROKE,BROOD,BROOK,BROOM,BROTH,BROWN,BROWS,BRUIN,BRUNT,BRUSH,BRUTE,BUDDY,BUDGE,BUGGY,BUGLE,BUILD,BUILT,BULBS,BULGE,BULGY,BULKS,BULKY,BULLA,BULLS,BULLY,BUMPS,BUMPY,BUNCH,BUNCO,BUNKS,BUNNY,BUNTS,BUOYS,BURGH,BURGS,BURKA,BURKE,BURLY,BURNS,BURNT,BURPS,BURRO,BURRS,BURST,BUSBY,BUSHY,BUSKS,BUSTS,BUSTY,BUTCH,BUTTE,BUTTS,BUXOM,BUYER,BYLAW,BYTES,CABAL,CABBY,CABIN,CABLE,CACAO,CACHE,CACTI,CADDY,CADET,CADGE,CAFES,CAGED,CAGER,CAGES,CAGEY,CAIRN,CAKED,CAKES,CAMEL,CAMEO,CAMPO,CAMPS,CAMPY,CANAL,CANDY,CANED,CANER,CANES,CANID,CANNY,CANOE,CANON,CAPED,CAPER,CAPES,CAPOS,CARDS,CARED,CARER,CARES,CARGO,CAROB,CAROL,CAROM,CARPS,CARRY,CARTS,CARVE,CASAS,CASED,CASES,CASKS,CASTE,CASTS,CATCH,CATER,CATTY,CAULK,CAUSE,CAVES,CAVIL,CEASE,CEDAR,CEDED,CEDES,CELEB,CELLO,CELLS,CHAFE,CHAFF,CHAIN,CHAIR,CHALK,CHAMP,CHAMS,CHANT,CHAOS,CHAPS,CHARD,CHARM,CHARS,CHART,CHASE,CHASM,CHEAP,CHEAT,CHECK,CHEEK,CHEEP,CHEER,CHESS,CHEST,CHEWS,CHEWY,CHICK,CHIDE,CHIEF,CHILD,CHILE,CHILI,CHILL,CHIMP,CHINA,CHINS,CHIPS,CHIRP,CHIVE,CHOIR,CHOKE,CHOMP,CHOPS,CHORD,CHORE,CHOSE,CHUCK,CHUMP,CHUMS,CHUNK,CHURN,CHUTE,CIDER,CIGAR,CINCH,CIRCA,CISCO,CISSY,CITED,CITES,CIVET,CIVIC,CIVIL,CLACK,CLADS,CLAIM,CLAMP,CLAMS,CLANG,CLANK,CLANS,CLAPS,CLASH,CLASP,CLASS,CLAWS,CLAYS,CLEAN,CLEAR,CLEAT,CLEFT,CLERK,CLICK,CLIFF,CLIMB,CLINE,CLING,CLINK,CLIPS,CLOAK,CLOCK,CLODS,CLOGS,CLONE,CLOPS,CLOSE,CLOTH,CLOTS,CLOUD,CLOUT,CLOVE,CLOWN,CLUBS,CLUCK,CLUED,CLUES,CLUMP,CLUNG,CLUNK,COACH,COALS,COAST,COATS,COCOA,COCOS,CODED,CODER,CODES,CODEX,COEDS,COIFS,COILS,COINS,COKED,COKES,COLAS,COLDS,COLON,COLOR,COLTS,COMAS,COMBO,COMBS,COMER,COMES,COMET,COMFY,COMIC,COMMA,CONCH,CONDO,CONED,CONES,CONGA,CONIC,CONKS,COOED,COOKS,COOKY,COOLS,COOPS,COOTS,COPED,COPER,COPES,COPRA,COPSE,CORAL,CORDS,CORED,CORER,CORES,CORGI,CORKS,CORKY,CORNS,CORNY,CORPS,COSTS,COUCH,COUGH,COULD,COUNT,COUPE,COUPS,COURT,COUTH,COVED,COVEN,COVER,COVES,COVET,COVEY,COWED,COWER,COWLS,COYLY,COZEN,CRABS,CRACK,CRAFT,CRAGS,CRAMP,CRAMS,CRANE,CRANK,CRAPE,CRAPS,CRASH,CRASS,CRATE,CRAVE,CRAWL,CRAWS,CRAZE,CRAZY,CREAK,CREAM,CREDO,CREED,CREEK,CREEP,CREME,CREPE,CREPT,CRESS,CREST,CREWS,CRIBS,CRICK,CRIED,CRIER,CRIES,CRIME,CRIMP,CRISP,CROAK,CROCK,CROCS,CRONE,CRONY,CROOK,CROON,CROPS,CROSS,CROUP,CROWD,CROWN,CROWS,CRUDE,CRUEL,CRUET,CRUMB,CRUMP,CRUSH,CRUST,CRYPT,CUBED,CUBER,CUBES,CUBIC,CUBIT,CUFFS,CULLS,CULPA,CULTS,CUMIN,CUNTS,CUPID,CUPPA,CURBS,CURDS,CURDY,CURED,CURER,CURES,CURIO,CURLS,CURLY,CURRY,CURSE,CURVE,CURVY,CUSHY,CUSPS,CUTIE,CUTUP,CYCLE,CYNIC,DADDY,DAILY,DAIRY,DAISY,DALLY,DANCE,DANDY,DATUM,DAUNT,DEALS,DEALT,DEATH,DEBIT,DEBUG,DEBUT,DECAL,DECAY,DECOR,DECOY,DECRY,DEFER,DEITY,DELAY,DELTA,DELVE,DEMON,DEMUR,DENIM,DENSE,DEPOT,DEPTH,DERBY,DESKS,DETER,DETOX,DEUCE,DEVIL,DIARY,DICEY,DIGIT,DILLY,DIMLY,DINER,DINES,DINGY,DIODE,DIRGE,DIRTY,DISCO,DITCH,DITTO,DITTY,DIVAN,DIVER,DIZZY,DODGE,DODGY,DOGMA,DOING,DOLLY,DONOR,DONUT,DOPEY,DOUBT,DOUGH,DOUSE,DOWDY,DOWEL,DRAFT,DRAIN,DRAKE,DRAMA,DRANK,DRAPE,DRAWL,DRAWN,DRAWS,DREAD,DREAM,DRESS,DRIED,DRIER,DRIFT,DRILL,DRINK,DRIVE,DROIT,DROLL,DRONE,DROOL,DROOP,DROSS,DROVE,DROWN,DRUGS,DRUID,DRUMS,DRUNK,DRYER,DRYLY,DUCAL,DUCKS,DUCKY,DUCTS,DUDDY,DUDES,DUELS,DUETS,DUKED,DUKES,DULLS,DULLY,DUMMY,DUMPS,DUMPY,DUNCE,DUNES,DUNKS,DUPED,DUPER,DUPES,DURAL,DUSTY,DUTCH,DUVET,DWARF,DWELL,DWELT,DYING,EAGER,EAGLE,EARED,EARLY,EARTH,EASED,EASEL,EATER,EAVES,EBBED,EBONY,EDGED,EDGER,EDGES,EDICT,EDIFY,EIGHT,EJECT,ELATE,ELBOW,ELDER,ELECT,ELEGY,ELFIN,ELIDE,ELITE,ELOPE,ELUDE,ELVES,EMAIL,EMBED,EMBER,EMCEE,EMERY,EMPTY,ENACT,ENDED,ENDOW,ENEMY,ENJOY,ENNUI,ENTER,ENTRY,ENVOY,EPOCH,EPOXY,EQUAL,EQUIP,ERASE,ERECT,ERODE,ERROR,ERUPT,ESSAY,ETHER,ETHIC,ETHOS,EVADE,EVENT,EVERY,EVICT,EVOKE,EXACT,EXALT,EXCEL,EXERT,EXILE,EXIST,EXPAT,EXPEL,EXTOL,EXTRA,EXUDE,EXULT,EYING,FABLE,FACED,FACER,FACES,FACET,FACTO,FACTS,FADDY,FADED,FADER,FADES,FAGOT,FAILS,FAINT,FAIRY,FAITH,FAKED,FAKER,FAKES,FALLS,FALSE,FAMED,FANCY,FANGS,FANNY,FARCE,FARMS,FATAL,FATTY,FAULT,FAUNA,FAVOR,FEAST,FEATS,FECAL,FECES,FEEDS,FEELS,FEIGN,FEINT,FELLA,FELON,FEMUR,FENCE,FENDS,FERAL,FERNY,FERRY,FETAL,FETCH,FETID,FETUS,FEVER,FEWER,FIBER,FIBRE,FICUS,FIELD,FIEND,FIERY,FIFES,FIFTH,FIFTY,FIGHT,FILCH,FILED,FILER,FILES,FILET,FILLS,FILLY,FILMS,FILMY,FILTH,FINAL,FINCH,FINDS,FINED,FINER,FINES,FINIS,FIRED,FIRER,FIRES,FIRMS,FIRST,FISHY,FISTS,FITLY,FIVER,FIVES,FIXED,FIXER,FIXES,FIZZY,FJORD,FLACK,FLAGS,FLAIR,FLAKE,FLAKY,FLAME,FLANK,FLANS,FLAPS,FLARE,FLASH,FLASK,FLATS,FLAWS,FLEAS,FLECK,FLESH,FLICK,FLIED,FLIER,FLIES,FLING,FLINT,FLIPS,FLIRT,FLOAT,FLOCK,FLOOD,FLOOR,FLORA,FLOSS,FLOUR,FLOUT,FLOWS,FLUID,FLUKE,FLUKY,FLUNG,FLUNK,FLUSH,FLUTE,FOAMY,FOCAL,FOCUS,FOGGY,FOILS,FOIST,FOLKS,FOLLY,FONTS,FOODS,FOOLS,FORAY,FORCE,FORGE,FORGO,FORKS,FORMS,FORTE,FORTH,FORTY,FORUM,FOUND,FOUNT,FOURS,FOWLS,FOXES,FOYER,FRAIL,FRAME,FRANK,FRAUD,FRAYS,FREAK,FREED,FRESH,FRIAR,FRIED,FRIES,FRILL,FRISK,FRIZZ,FROCK,FROGS,FRONT,FROST,FROTH,FROWN,FROZE,FRUIT,FRUMP,FUDGE,FUELS,FUGUE,FULLY,FUMED,FUMES,FUNDS,FUNGI,FUNKY,FUNNY,FURRY,FUSSY,FUSTY,FUZZY,GAILY,GAINS,GAITS,GALES,GALLS,GAMES,GAMMA,GAMUT,GANGS,GAPED,GAPES,GARBS,GASES,GASPS,GASSY,GATES,GAUGE,GAUNT,GAUZE,GAUZY,GAVEL,GAWKS,GAWKY,GAYER,GAYLY,GAZED,GAZER,GAZES,GEARS,GECKO,GEEKS,GEEKY,GEESE,GENIE,GENRE,GENUS,GERMS,GETUP,GHOST,GIANT,GIFTS,GILDS,GILLS,GILTS,GIMPY,GIRDS,GIRLS,GIRLY,GIRTH,GISTS,GIVEN,GIVER,GIVES,GIZMO,GLADE,GLAND,GLARE,GLASS,GLAZE,GLEAM,GLEAN,GLEBE,GLEES,GLENS,GLIDE,GLINT,GLITZ,GLOAT,GLOBE,GLOBS,GLOOM,GLORY,GLOSS,GLOVE,GLOWS,GLUED,GLUER,GLUES,GLUEY,GLUGS,GLUTS,GLYPH,GNARL,GNARS,GNASH,GNATS,GNAWS,GNOME,GOADS,GOALS,GOATS,GODLY,GOERS,GOFER,GOING,GOLDS,GOLFS,GONER,GONGS,GONNA,GOODS,GOODY,GOOEY,GOOFS,GOOFY,GOONS,GOOSE,GORED,GORES,GORGE,GOUGE,GOURD,GOUTS,GOWNS,GRACE,GRADE,GRAFT,GRAIL,GRAIN,GRAMS,GRAND,GRANT,GRAPE,GRAPH,GRASP,GRASS,GRATE,GRAVE,GRAVY,GRAYS,GRAZE,GREAT,GREED,GREEK,GREEN,GREET,GREYS,GRIEF,GRILL,GRIME,GRIMY,GRIND,GRINS,GRIPE,GRIPS,GRIST,GRITS,GROAN,GROAT,GROIN,GROOM,GROPE,GROSS,GROUP,GROUT,GROVE,GROWL,GROWN,GROWS,GRUBS,GRUEL,GRUFF,GRUMP,GRUNT,GUANO,GUARD,GUAVA,GUESS,GUEST,GUIDE,GUILD,GUILT,GUISE,GULCH,GULFS,GULLS,GULPS,GUMMY,GUMPS,GUNKS,GUNKY,GUNNY,GUSTO,GUSTS,GUSTY,GUTSY,GYPSY,HABIT,HACKS,HADES,HADJI,HAFTS,HAIKU,HAILS,HAIRS,HAIRY,HAJJI,HALED,HALER,HALES,HALLS,HALOS,HALTS,HALVE,HANDS,HANDY,HANGS,HANKS,HAPPY,HARDY,HAREM,HARKS,HARMS,HARPS,HARPY,HARRY,HARSH,HASTE,HASTY,HATCH,HATED,HATER,HATES,HAULS,HAUNT,HAVEN,HAVES,HAVOC,HAWKS,HAZED,HAZEL,HAZER,HAZES,HEADS,HEADY,HEALS,HEAPS,HEARD,HEARS,HEART,HEATH,HEATS,HEAVE,HEAVY,HEDGE,HEEDS,HEELS,HEFTS,HEFTY,HEIRS,HEIST,HELIX,HELLO,HELLS,HELPS,HENCE,HENNA,HERBS,HERDS,HERON,HERTZ,HEWED,HEWER,HEXED,HEXES,HICKS,HIDES,HIGHS,HIKED,HIKER,HIKES,HILLS,HILLY,HILTS,HINDS,HINGE,HINTS,HIPPO,HIPPY,HIRED,HIRER,HIRES,HITCH,HIVED,HIVES,HOARD,HOARS,HOARY,HOBBY,HOBOS,HOCKS,HOCUS,HOIST,HOLDS,HOLED,HOLES,HOLEY,HOLLY,HOMED,HOMER,HOMES,HOMEY,HOMIE,HONED,HONER,HONES,HONEY,HONKS,HONOR,HOODS,HOOFS,HOOKS,HOOKY,HOOPS,HOOTS,HOPED,HOPER,HOPES,HORDE,HORNS,HORNY,HORSE,HORSY,HOSED,HOSES,HOTEL,HOTLY,HOUND,HOURS,HOUSE,HOVEL,HOVER,HOWDY,HOWLS,HUBBY,HUFFS,HUFFY,HUGER,HULKS,HULKY,HULLS,HUMAN,HUMID,HUMPS,HUMPY,HUMUS,HUNCH,HUNKS,HUNKY,HUNTS,HURLS,HURRY,HURTS,HUSKS,HUSKY,HUSSY,HUTCH,HYDRA,HYENA,HYMEN,HYMNS,HYPER,ICIER,ICILY,ICING,ICONS,IDEAL,IDEAS,IDIOM,IDIOT,IDLED,IDLER,IDLES,IDOLS,IGLOE,IGLOO,IMAGE,IMBUE,IMPEL,IMPLY,INANE,INAPT,INCUR,INDEX,INDIE,INEPT,INERT,INFER,INGLE,INGOT,INKED,INLAY,INLET,INNER,INPUT,INTER,INTRO,IONIC,IRATE,IRKED,IRONS,IRONY,ISLES,ISLET,ISSUE,ITCHY,ITEMS,IVIED,IVIES,IVORY,JACKS,JADED,JADES,JAFFA,JAGER,JAILS,JAMBS,JAMES,JAMMY,JANES,JANKY,JAPAN,JAPED,JAPER,JAPES,JATOS,JAUNT,JAZZY,JEANS,JEEPS,JEERS,JELLO,JELLY,JENNY,JERKS,JERKY,JESTS,JESUS,JETTY,JEWEL,JIBED,JIBER,JIBES,JIFFS,JIFFY,JILTS,JIMMY,JINGO,JINKS,JIVED,JIVER,JIVES,JIZAN,JOCKS,JOINS,JOINT,JOIST,JOKED,JOKER,JOKES,JOKEY,JOLLY,JOLTS,JOULE,JOUST,JOYED,JUDGE,JUICE,JUICY,JULEP,JUMBO,JUMPS,JUMPY,JUNCO,JUNKS,JUNKY,JUROR,JUSTS,KAFIR,KALES,KAPOK,KAPPA,KAPUT,KARAT,KARMA,KAYAK,KAZOO,KEBAB,KEELS,KEEPS,KELPS,KELPY,KENAF,KENDO,KETCH,KEYED,KHAKI,KICKS,KICKY,KIDDO,KILLS,KILNS,KILTS,KILTY,KINDA,KINDS,KINES,KINGS,KINKS,KINKY,KIOSK,KIRKS,KITED,KITER,KITES,KITHE,KITHS,KITTY,KIWIS,KLICK,KLUTZ,KNACK,KNEAD,KNEED,KNEEL,KNEES,KNELL,KNELT,KNIFE,KNITS,KNOBS,KNOCK,KNOLL,KNOTS,KNOWN,KNOWS,KNURL,KOALA,KOOKS,KOOKY,KRAUT,KRILL,KUDOS,KUDZU,LABEL,LABOR,LACED,LACER,LACES,LACEY,LACKS,LADED,LADEN,LADES,LADLE,LAGER,LAIRD,LAIRS,LAKED,LAKES,LAMAS,LAMBS,LAMED,LAMER,LAMES,LAMPS,LANCE,LANDS,LANES,LANKY,LAPEL,LAPSE,LARGE,LARKS,LARKY,LARVA,LASED,LASER,LASES,LASSO,LASTS,LATCH,LATER,LATEX,LATHE,LATHS,LATTE,LAUDS,LAUGH,LAVAS,LAWNS,LAYER,LAYUP,LAZED,LAZES,LEACH,LEADS,LEADY,LEAFS,LEAFY,LEAKS,LEAKY,LEANS,LEANT,LEAPS,LEAPT,LEARN,LEASE,LEASH,LEAST,LEAVE,LEDGE,LEDGY,LEECH,LEEKS,LEERS,LEERY,LEFTS,LEFTY,LEGAL,LEMMA,LEMME,LEMON,LEMUR,LENDS,LEPER,LESBO,LETUP,LEVEE,LEVEL,LEVER,LIANA,LIARS,LIBEL,LICKS,LIDOS,LIEGE,LIENS,LIFER,LIFTS,LIGHT,LIKED,LIKEN,LIKER,LIKES,LILAC,LILTS,LIMBO,LIMBS,LIMBY,LIMED,LIMES,LIMEY,LIMIT,LIMNS,LIMOS,LIMPS,LINED,LINEN,LINER,LINES,LINGO,LINGS,LINKS,LINTY,LINUX,LIONS,LIPID,LIPPY,LISLE,LISPS,LISTS,LITER,LITHE,LITRE,LIVED,LIVEN,LIVER,LIVES,LIVID,LLAMA,LLANO,LOACH,LOADS,LOAFS,LOAMY,LOANS,LOATH,LOBBY,LOBED,LOBES,LOCAL,LOCUS,LODGE,LOFTS,LOFTY,LOGIC,LOGIN,LOINS,LOLLS,LONER,LONGS,LOOFA,LOOKS,LOOMS,LOONS,LOONY,LOOPS,LOOPY,LOOSE,LOOTS,LOPED,LOPER,LOPES,LORDS,LORDY,LORES,LOSER,LOSES,LOSSY,LOTTO,LOTUS,LOUSE,LOUSY,LOUTS,LOVED,LOVER,LOVES,LOWED,LOWER,LOWLY,LOYAL,LUBED,LUBES,LUCID,LUCKS,LUCKY,LUCRE,LUDES,LUDIC,LUFFA,LULLS,LUMEN,LUMPS,LUMPY,LUNAR,LUNCH,LUNGE,LUNGS,LUPIN,LUPUS,LURCH,LURED,LURER,LURES,LURKS,LUSTS,LUSTY,LUSUS,LUTES,LYING,LYMPH,LYNCH,LYRIC,MACHO,MACRO,MADAM,MADLY,MAFIA,MAGIC,MAGMA,MAIDS,MAILS,MAIMS,MAINS,MAIZE,MAJOR,MAKER,MAKES,MALES,MAMBO,MAMMA,MAMMY,MANGA,MANGE,MANGO,MANGY,MANIA,MANIC,MANLY,MANOR,MAPLE,MARCH,MARES,MARKS,MARRY,MARSH,MASKS,MASON,MASSE,MASTS,MATCH,MATED,MATER,MATES,MATEY,MATHS,MATTE,MAULS,MAVEN,MAXED,MAXES,MAXIM,MAYOR,MAZES,MEADS,MEALS,MEALY,MEANS,MEANT,MEANY,MEATS,MEATY,MECCA,MEDAL,MEDIA,MEDIC,MEETS,MELDS,MELEE,MELON,MELTS,MEMOS,MENDS,MENUS,MEOWS,MERCY,MERGE,MERIT,MERRY,MESHY,MESSY,METAL,METED,METER,METHS,METRO,MICRO,MIDST,MIGHT,MIKED,MIKES,MILCH,MILDS,MILER,MILES,MILKS,MILKY,MILLS,MIMED,MIMER,MIMES,MIMIC,MINCE,MINCY,MINDS,MINED,MINER,MINES,MINIM,MINKS,MINOR,MINTS,MINTY,MINUS,MIRED,MIRES,MIRTH,MISER,MISSY,MISTS,MISTY,MITER,MITRE,MITTS,MIXED,MIXER,MIXES,MOANS,MOATS,MOCHA,MOCKS,MODAL,MODEL,MODEM,MODES,MODUS,MOGUL,MOIST,MOLAR,MOLDS,MOLDY,MOLES,MOLLS,MOLLY,MOLTO,MOLTS,MOMMA,MOMMY,MONKS,MONTH,MOODS,MOODY,MOOED,MOONS,MOONY,MOORS,MOOSE,MOOTS,MOPED,MOPER,MOPES,MOPEY,MORAL,MOREL,MORES,MORNS,MORON,MORPH,MORSE,MOSSY,MOTEL,MOTES,MOTHS,MOTHY,MOTIF,MOTOR,MOTTO,MOULT,MOUND,MOUNT,MOURN,MOUSE,MOUSY,MOUTH,MOVED,MOVER,MOVES,MOVIE,MOWED,MOWER,MOXIE,MUCIN,MUCKS,MUCKY,MUCUS,MUDDY,MUFFS,MUFTI,MULED,MULES,MULLS,MUMPS,MUNCH,MUNGS,MUONS,MURAL,MURKS,MURKY,MUSED,MUSER,MUSES,MUSHY,MUSIC,MUSKS,MUSKY,MUSTS,MUSTY,MUTED,MUTER,MUTES,MUTTS,MUZZY,MYNAH,MYNAS,MYRRH,MYTHS,NACHO,NADIR,NAILS,NAIVE,NAKED,NAMED,NAMER,NAMES,NANNY,NAPES,NAPPY,NARCO,NARCS,NARKS,NARKY,NASAL,NASTY,NATAL,NATES,NATTY,NAVAL,NAVEL,NAVES,NAVVY,NAZIS,NEAPS,NEARS,NEATH,NECKS,NEEDS,NEEDY,NEGRO,NEIGH,NEONS,NERDS,NERDY,NERVE,NERVY,NESTS,NEVER,NEWER,NEWLY,NEWSY,NEWTS,NEXUS,NICER,NICHE,NICKS,NIECE,NIFTY,NIGHT,NIMBY,NINJA,NINNY,NINTH,NIPPY,NITER,NITRE,NITRO,NITTY,NIXED,NIXES,NIXIE,NOBLE,NOBLY,NODAL,NODDY,NODES,NOHOW,NOISE,NOISY,NOMAD,NONCE,NONES,NONNY,NOOKS,NOOKY,NOONS,NOOSE,NORMS,NORTH,NOSED,NOSER,NOSES,NOSEY,NOTCH,NOTED,NOTER,NOTES,NOUNS,NOVAE,NOVAS,NOVEL,NUBBY,NUKED,NUKES,NULLS,NUMBS,NURSE,NUTSY,NUTTY,NYLON,NYMPH,OAKEN,OAKUM,OARED,OASES,OASIS,OATER,OATHS,OBEAH,OBESE,OBEYS,OCCUR,OCEAN,OCHER,OCHRE,OCTAL,OCTET,OCTYL,OCULI,ODDER,ODDLY,ODEUM,ODORS,ODOUR,OFFAL,OFFED,OFFER,OFTEN,OGLED,OGLER,OGLES,OGRES,OHHHH,OHING,OILED,OILER,OINKS,OKAPI,OKAYS,OKRAS,OLDEN,OLDER,OLDIE,OLIVE,OMBRE,OMEGA,OMENS,OMITS,ONION,ONSET,OOHED,OOZED,OOZES,OPALS,OPENS,OPERA,OPINE,OPIUM,OPTED,OPTIC,ORALS,ORATE,ORBIT,ORCAS,ORDER,ORGAN,ORIBI,OSIER,OTHER,OTTER,OUGHT,OUNCE,OUSEL,OUSTS,OUTDO,OUTED,OUTER,OUTGO,OUTRE,OVARY,OVATE,OVENS,OVERT,OVOID,OVULE,OWING,OWLED,OWLER,OWNED,OWNER,OXBOW,OXIDE,OXTER,OZONE,PACED,PACER,PACES,PACKS,PACTS,PADDY,PADRE,PAEAN,PAGAN,PAGED,PAGER,PAGES,PAILS,PAINS,PAINT,PAIRS,PALER,PALES,PALLS,PALMS,PALMY,PALSY,PANDA,PANED,PANEL,PANES,PANGS,PANIC,PANSY,PANTS,PANTY,PAPAL,PAPAS,PAPAW,PAPER,PAPPY,PARAM,PARCH,PARDS,PARED,PARER,PARES,PARIS,PARKA,PARKS,PARKY,PARRY,PARSE,PARTS,PARTY,PASED,PASES,PASSE,PASTE,PASTS,PASTY,PATCH,PATER,PATHS,PATIO,PATSY,PATTY,PAUSE,PAVED,PAVER,PAVES,PAWED,PAWER,PAWLS,PAWNS,PAYED,PAYEE,PAYER,PEACE,PEACH,PEAKS,PEAKY,PEALS,PEARL,PEARS,PEATS,PEATY,PECAN,PECKS,PEDAL,PEEKS,PEELS,PEENS,PEEPS,PEERS,PEEVE,PENAL,PENCE,PENDS,PENIS,PENNY,PEONS,PEPPY,PERCH,PERDU,PERKS,PERKY,PERMS,PERRY,PESKY,PESOS,PESTS,PESTY,PETAL,PETER,PETIT,PETRI,PETTY,PEWEE,PEWIT,PHASE,PHONE,PHONY,PHOTO,PIANO,PICKY,PIECE,PIERS,PIETA,PIETY,PIGGY,PIKED,PIKER,PIKES,PILED,PILES,PILLS,PILOT,PIMPS,PINCH,PINED,PINES,PINGS,PINKO,PINKS,PINKY,PINNA,PINNY,PINOT,PINTO,PINTS,PINUP,PIONS,PIOUS,PIPED,PIPER,PIPES,PIQUE,PITCH,PITHS,PITHY,PITON,PITTA,PIVOT,PIXEL,PIXIE,PIZZA,PLACE,PLAID,PLAIN,PLAIT,PLANE,PLANK,PLANS,PLANT,PLASH,PLASM,PLATE,PLATS,PLAYA,PLAYS,PLAZA,PLEAD,PLEAS,PLEAT,PLEBE,PLEBS,PLENA,PLIED,PLIER,PLIES,PLINK,PLODS,PLONK,PLOPS,PLOTS,PLOWS,PLOYS,PLUCK,PLUGS,PLUMB,PLUME,PLUMP,PLUMS,PLUMY,PLUNK,PLUSH,PLYER,POACH,POCKS,POCKY,PODGY,PODIA,POEMS,POETS,POINT,POISE,POKED,POKER,POKES,POKEY,POLAR,POLED,POLER,POLES,POLIO,POLIS,POLKA,POLLS,POLYP,POLYS,POMPS,PONCE,PONCY,PONDS,PONGS,PONGY,POOCH,POOEY,POOFS,POOFY,POOHS,POOLS,POOPS,POOPY,POPES,POPPA,POPPY,PORCH,PORED,PORER,PORES,PORGY,PORKS,PORKY,PORNO,PORNS,PORTS,POSED,POSER,POSES,POSIT,POSSE,POSTS,POTTY,POUCH,POUFS,POUND,POURS,POUTS,POUTY,POWER,POXES,PRAMS,PRANG,PRANK,PRAPS,PRATE,PRAWN,PRAYS,PREEN,PRESA,PRESS,PREYS,PRICE,PRICY,PRIDE,PRIED,PRIER,PRIES,PRIMA,PRIME,PRIMP,PRIMS,PRINT,PRION,PRIOR,PRISM,PRISS,PRIVY,PRIZE,PROAS,PROBE,PROBS,PRODS,PROEM,PROFS,PROMO,PROMS,PRONE,PRONG,PROOF,PROPS,PROSE,PROSY,PROUD,PROVE,PROWL,PROWS,PRUDE,PRUNE,PRYER,PSALM,PSEUD,PSHAW,PSYCH,PUBIC,PUBIS,PUCKS,PUDGE,PUDGY,PUFFS,PUFFY,PUKED,PUKER,PUKES,PULED,PULER,PULES,PULLS,PULPS,PULPY,PULSE,PUMAS,PUMPS,PUNCH,PUNKS,PUNKY,PUNNY,PUNTS,PUPAE,PUPAL,PUPAS,PUPIL,PUPPY,PUREE,PURER,PURGE,PURRS,PURSE,PURSY,PUSHY,PUSSY,PUTON,PUTTS,PUTTY,PYGMY,PYLON,PYRES,PYREX,QUACK,QUADS,QUAFF,QUAGS,QUAIL,QUALM,QUARK,QUART,QUASI,QUAYS,QUEEN,QUEER,QUELL,QUERY,QUEST,QUEUE,QUICK,QUIDS,QUIET,QUIFF,QUILL,QUILT,QUINT,QUIPS,QUIRK,QUIRT,QUITE,QUITS,QUOTA,QUOTE,QUOTH,RABBI,RABID,RACED,RACER,RACES,RACKS,RADAR,RADII,RADIO,RADIX,RADON,RAFFS,RAFTS,RAGED,RAGER,RAGES,RAGGY,RAIDS,RAILS,RAINS,RAINY,RAISE,RAJAH,RAKED,RAKER,RAKES,RALLY,RAMPS,RANCH,RANDO,RANDS,RANDY,RANGE,RANGY,RANKS,RANTS,RAPED,RAPER,RAPES,RAPID,RARER,RASHY,RASPS,RASPY,RATED,RATER,RATES,RATIO,RATTY,RAVED,RAVEL,RAVEN,RAVER,RAVES,RAWER,RAWLY,RAYON,RAZED,RAZES,RAZOR,REACH,REACT,READS,READY,REALM,REALS,REAMS,REAPS,REARS,REBEL,REBID,REBUS,REBUT,RECAP,RECCE,RECKS,RECTO,RECUR,REDID,REDLY,REDOS,REEDS,REEDY,REEFS,REEFY,REEKS,REEKY,REELS,REEVE,REFER,REFIT,REGAL,REHAB,REIGN,REINS,REIST,RELAX,RELAY,RELIC,REMIT,REMIX,RENAL,RENDS,RENEW,RENTS,REPAY,REPEL,REPLY,REPOS,REPOT,REPRO,RERAN,RERUN,RESAT,RESET,RESIN,RESIT,RESTS,RETCH,RETIE,RETRO,RETRY,REUSE,REVEL,REWED,RHEUM,RHINO,RHYME,RHYMY,RIALS,RIATA,RIBBY,RICED,RICER,RICES,RICEY,RIDER,RIDES,RIDGE,RIDGY,RIFFS,RIFLE,RIFTS,RIGHT,RIGID,RIGOR,RILED,RILES,RILEY,RILLS,RINDS,RINDY,RINGS,RINKS,RINSE,RIOJA,RIOTS,RIPED,RIPEN,RIPER,RIPES,RISEN,RISER,RISES,RISHI,RISKS,RISKY,RISUS,RITES,RITZY,RIVAL,RIVED,RIVEN,RIVER,RIVES,RIVET,ROACH,ROADS,ROAMS,ROARS,ROAST,ROBED,ROBES,ROBIN,ROBOT,ROCKS,ROCKY,RODEO,ROGUE,ROILS,ROILY,ROLES,ROLLS,ROMAN,ROMEO,ROMPS,RONDO,ROODS,ROOFS,ROOKS,ROOKY,ROOMS,ROOMY,ROOST,ROOTS,ROOTY,ROPED,ROPER,ROPES,ROSES,ROSIN,ROTOR,ROUGE,ROUGH,ROUND,ROUSE,ROUTE,ROVED,ROVER,ROVES,ROWDY,ROWED,ROWER,ROYAL,RUBES,RUBLE,RUCKS,RUDDY,RUDER,RUFFS,RUGBY,RUING,RUINS,RULED,RULER,RULES,RUMBA,RUMMY,RUMOR,RUMPS,RUNGS,RUNIC,RUNNY,RUNTS,RUNTY,RUPEE,RURAL,RUSSE,RUSTS,RUSTY,RUTTY,SABLE,SABOT,SACKS,SADLY,SAFER,SAFES,SAGAS,SAGER,SAGES,SAHIB,SAIDS,SAILS,SAINT,SAITH,SAKES,SALAD,SALES,SALLY,SALON,SALSA,SALTS,SALTY,SALVE,SALVO,SAMBA,SAMES,SAMEY,SANDY,SANER,SAPPY,SARGE,SARIS,SARKY,SASSY,SATAY,SATED,SATES,SATIN,SATYR,SAUCE,SAUCY,SAUNA,SAUTE,SAVED,SAVER,SAVES,SAVOR,SAVOY,SAVVY,SAWED,SAWER,SAXES,SAYER,SCABS,SCADS,SCALD,SCALE,SCALP,SCALY,SCAMP,SCAMS,SCANS,SCARE,SCARF,SCARP,SCARS,SCARY,SCENE,SCENT,SCHMO,SCHWA,SCION,SCOFF,SCOLD,SCONE,SCOOP,SCOOT,SCOPE,SCOPS,SCORE,SCORN,SCOTS,SCOUR,SCOUT,SCOWL,SCOWS,SCRAM,SCRAP,SCREE,SCREW,SCRIM,SCRIP,SCROD,SCRUB,SCRUM,SCUBA,SCUDS,SCUFF,SCULK,SCULL,SEALS,SEAMS,SEAMY,SEARS,SEATS,SECTS,SEDAN,SEDGE,SEDGY,SEDUM,SEEDS,SEEDY,SEEKS,SEEMS,SEEPS,SEEPY,SEERS,SEGUE,SEIZE,SELLS,SEMEN,SEMIS,SENDS,SENOR,SENSE,SEPAL,SEPIA,SEPOY,SEPTA,SERFS,SERGE,SERIF,SERUM,SERVE,SERVO,SETUP,SEVEN,SEVER,SEWED,SEWER,SEXED,SEXES,SHACK,SHADE,SHADS,SHADY,SHAFT,SHAGS,SHAKE,SHAKO,SHAKY,SHALE,SHALL,SHALT,SHAME,SHAMS,SHANK,SHAPE,SHARD,SHARE,SHARK,SHARP,SHAVE,SHAWL,SHAWM,SHAYS,SHEAF,SHEAR,SHEDS,SHEEN,SHEEP,SHEER,SHEET,SHEIK,SHELF,SHELL,SHEWN,SHEWS,SHIED,SHIER,SHIES,SHIFT,SHILL,SHIMS,SHINE,SHINS,SHINY,SHIPS,SHIRE,SHIRK,SHIRR,SHIRT,SHISH,SHITS,SHIVE,SHOAL,SHOCK,SHOED,SHOER,SHOES,SHOJI,SHONE,SHOOK,SHOOS,SHOOT,SHOPS,SHORE,SHORN,SHORT,SHOTE,SHOTS,SHOUT,SHOVE,SHOWN,SHOWS,SHOWY,SHRED,SHREW,SHRUB,SHRUG,SHUCK,SHUNT,SHUSH,SHUTS,SHYLY,SIBYL,SIDED,SIDER,SIDES,SIDLE,SIEGE,SIEVE,SIFTS,SIGHS,SIGHT,SIGMA,SIGNA,SIGNS,SILKS,SILKY,SILLS,SILLY,SILTS,SILTY,SINCE,SINEW,SINGE,SINGS,SINKS,SINKY,SINUS,SIREN,SIRES,SISSY,SITAR,SITED,SITES,SITUP,SITUS,SIXER,SIXES,SIXTH,SIXTY,SIZED,SIZER,SIZES,SKALD,SKANK,SKATE,SKATS,SKEAN,SKEED,SKEES,SKEET,SKEIN,SKELP,SKENE,SKEPS,SKEWS,SKIDS,SKIED,SKIER,SKIES,SKIEY,SKIFF,SKILL,SKIMP,SKIMS,SKINS,SKINT,SKIPS,SKIRL,SKIRT,SKITS,SKIVE,SKOAL,SKULL,SKUNK,SLABS,SLACK,SLAGS,SLAIN,SLAKE,SLAMS,SLANG,SLANT,SLAPS,SLASH,SLATE,SLATS,SLATY,SLAVE,SLAYS,SLEDS,SLEEK,SLEEP,SLEET,SLEPT,SLICE,SLICK,SLIDE,SLIER,SLILY,SLIME,SLIMS,SLIMY,SLING,SLINK,SLIPS,SLITS,SLOBS,SLOES,SLOGS,SLOMO,SLOPS,SLOSH,SLOTH,SLOTS,SLOWS,SLUBS,SLUED,SLUES,SLUGS,SLUMP,SLUMS,SLUNG,SLUNK,SLURP,SLURS,SLUSH,SLYER,SLYLY,SMACK,SMALL,SMARM,SMART,SMASH,SMEAR,SMELL,SMELT,SMILE,SMIRK,SMITE,SMITH,SMOCK,SMOGS,SMOKE,SMOKY,SMOLT,SMOTE,SNACK,SNAFU,SNAGS,SNAIL,SNAKE,SNAKY,SNAPS,SNARE,SNARF,SNARL,SNEAK,SNEER,SNELL,SNICK,SNIDE,SNIFF,SNIPE,SNIPS,SNITS,SNOBS,SNOGS,SNOOD,SNOOP,SNOOT,SNORE,SNORT,SNOTS,SNOUT,SNOWS,SNOWY,SNUBS,SNUCK,SNUFF,SNUGS,SOAKS,SOAPS,SOAPY,SOARS,SOBER,SOCKO,SOCKS,SOFAS,SOFTA,SOFTS,SOFTY,SOGGY,SOILS,SOLAR,SOLED,SOLES,SOLID,SOLON,SOLOS,SOLVE,SONAR,SONGS,SONIC,SONNY,SOOTH,SOOTS,SOOTY,SOPPY,SORRY,SORTA,SORTS,SOUKS,SOULS,SOUND,SOUPS,SOUPY,SOURS,SOUTH,SOWED,SOWER,SPACE,SPACY,SPADE,SPAKE,SPAMS,SPANG,SPANK,SPANS,SPARE,SPARK,SPARS,SPASM,SPATE,SPAWN,SPAYS,SPEAK,SPEAR,SPECK,SPECS,SPEED,SPELL,SPELT,SPEND,SPENT,SPERM,SPICE,SPICY,SPIED,SPIEL,SPIER,SPIES,SPIFF,SPIKE,SPIKY,SPILL,SPILT,SPINE,SPINS,SPINY,SPIRE,SPITE,SPITS,SPITZ,SPLAT,SPLAY,SPLIT,SPOIL,SPOKE,SPOOF,SPOOK,SPOOL,SPOON,SPOOR,SPORE,SPORT,SPOTS,SPOUT,SPRAT,SPRAY,SPREE,SPRIG,SPRIT,SPRUE,SPUDS,SPUED,SPUES,SPUME,SPUMY,SPUNK,SPURN,SPURR,SPURS,SPURT,SQUAD,SQUAT,SQUAW,SQUIB,SQUID,STACK,STAFF,STAGE,STAGS,STAGY,STAID,STAIN,STAIR,STAKE,STALE,STALK,STALL,STAMP,STAND,STANK,STAPH,STARE,STARK,STARS,START,STASH,STATE,STATS,STAVE,STAYS,STEAD,STEAK,STEAL,STEAM,STEED,STEEL,STEEP,STEER,STEMS,STENO,STEPS,STERN,STETS,STEWS,STICK,STIFF,STILE,STILL,STILT,STING,STINK,STINT,STIRS,STOCK,STOGY,STOIC,STOKE,STOLE,STOMP,STONE,STONY,STOOD,STOOL,STOOP,STOPS,STORE,STORK,STORM,STORY,STOUP,STOUT,STOVE,STOWS,STRAP,STRAW,STRAY,STREP,STREW,STRIP,STROP,STRUT,STUCK,STUDS,STUDY,STUFF,STUMP,STUMS,STUNG,STUNK,STUNS,STUNT,STUPA,STYLE,STYLI,SUAVE,SUCKS,SUCKY,SUDSY,SUEDE,SUETS,SUETY,SUGAR,SUING,SUITE,SUITS,SULKS,SULKY,SULLY,SUMAC,SUMMA,SUMOS,SUMPS,SUNKS,SUNNY,SUNUP,SUPER,SUPRA,SURDS,SURER,SURFS,SURFY,SURGE,SURGY,SURLY,SUSHI,SWABS,SWAGE,SWAGS,SWAIN,SWALE,SWAMI,SWAMP,SWANK,SWANS,SWAPS,SWARD,SWARM,SWART,SWASH,SWATH,SWATS,SWAYS,SWEAR,SWEAT,SWEDE,SWEEP,SWEET,SWELL,SWEPT,SWIFT,SWIGS,SWILL,SWIMS,SWINE,SWING,SWIPE,SWIRL,SWISH,SWISS,SWOON,SWOOP,SWORD,SWORE,SWORN,SWOTS,SWUNG,SYLPH,SYNCH,SYNOD,SYNTH,SYRUP,TABBY,TABLE,TABOO,TABOR,TABUS,TACIT,TACKS,TACKY,TACOS,TACTS,TAELS,TAFFY,TAILS,TAINT,TAKEN,TAKER,TAKES,TALAS,TALES,TALKS,TALKY,TALLS,TALLY,TALON,TAMED,TAMER,TAMES,TAMIS,TAMPS,TANGO,TANGS,TANGY,TANKS,TANSY,TAPAS,TAPED,TAPER,TAPES,TAPIR,TAPIS,TARDY,TARED,TARES,TARNS,TAROS,TAROT,TARPS,TARRY,TARTS,TARTY,TASKS,TASTE,TASTY,TATER,TATTY,TAUNT,TAUPE,TAWNY,TAXED,TAXER,TAXES,TAXIS,TEACH,TEAKS,TEALS,TEAMS,TEARS,TEARY,TEASE,TEATS,TECHS,TECHY,TEDDY,TEEMS,TEENS,TEENY,TEETH,TELLS,TELLY,TEMPO,TEMPS,TEMPT,TENCH,TENDS,TENET,TENOR,TENSE,TENTH,TENTS,TEPEE,TEPID,TERMS,TERNS,TERRA,TERRY,TERSE,TESLA,TESTS,TESTY,TEXTS,THANE,THANK,THAWS,THEFT,THEIR,THEME,THEMS,THERE,THERM,THESE,THETA,THEWS,THICK,THIEF,THIGH,THINE,THING,THINK,THINS,THIRD,THONG,THORN,THOSE,THOUS,THREE,THREW,THROB,THROW,THRUM,THUDS,THUGS,THUMB,THUMP,THUNK,THYME,TIARA,TIBIA,TICKS,TIDAL,TIDED,TIDES,TIERS,TIGER,TIGHT,TIKES,TILDE,TILED,TILER,TILES,TILLS,TILTS,TIMED,TIMER,TIMES,TIMID,TINCT,TINEA,TINED,TINES,TINGE,TINGS,TINNY,TINTS,TIPPY,TIPSY,TIRED,TIRES,TITAN,TITER,TITLE,TITRE,TITTY,TOADS,TOADY,TOAST,TODAY,TODDY,TOFFS,TOFFY,TOFUS,TOGAS,TOGGL,TOGUE,TOILE,TOILS,TOKED,TOKEN,TOKES,TOLLS,TOMBS,TOMES,TONAL,TONDO,TONED,TONER,TONES,TONGS,TONIC,TONNE,TOOLS,TOOTH,TOOTS,TOPAZ,TOPED,TOPEE,TOPER,TOPES,TOPHI,TOPIC,TOPIS,TOPPY,TOQUE,TORAH,TORCH,TORED,TORES,TORIC,TORII,TOROS,TORSE,TORSI,TORSO,TORTE,TORTS,TORUS,TOTAL,TOTED,TOTEM,TOTER,TOTES,TOUCH,TOUGH,TOURS,TOUSE,TOUTS,TOWED,TOWEL,TOWER,TOWNS,TOWNY,TOXIC,TOXIN,TOYED,TOYER,TRACE,TRACK,TRACT,TRADE,TRAIL,TRAIN,TRAIT,TRAMP,TRAMS,TRANS,TRAPS,TRASH,TRAWL,TRAYS,TREAD,TREAT,TREED,TREES,TREKS,TREND,TRESS,TREWS,TRIAD,TRIAL,TRIBE,TRICE,TRICK,TRIED,TRIER,TRIES,TRIGO,TRIGS,TRIKE,TRILL,TRIMS,TRINE,TRIOS,TRIPE,TRIPS,TRITE,TROAD,TROLL,TROMP,TROOP,TROTH,TROTS,TROUT,TROVE,TROWS,TRUCE,TRUCK,TRUED,TRUER,TRUES,TRULY,TRUMP,TRUNK,TRUSS,TRUST,TRUTH,TRYPS,TRYST,TSUBA,TUBAS,TUBBY,TUBED,TUBER,TUBES,TUCKS,TUFFS,TUFTS,TUFTY,TULIP,TULLE,TUMID,TUMMY,TUMOR,TUMPS,TUNAS,TUNED,TUNER,TUNES,TUNIC,TUNNY,TUPLE,TURBO,TURDS,TURFS,TURFY,TURNS,TURPS,TUSCH,TUSKS,TUSKY,TUTOR,TUTTI,TUTUS,TUXES,TWAIN,TWANG,TWEAK,TWEED,TWEET,TWERP,TWICE,TWIGS,TWILL,TWINE,TWINK,TWINS,TWINY,TWIRL,TWIRP,TWIST,TWITS,TWIXT,TYPED,TYPER,TYPES,TYPOS,TYRED,TYRES,TYROS,UDDER,UGHED,UKASE,UKELP,UKING,ULCER,ULNAS,ULTRA,UMBEL,UMBER,UMBRA,UMIAK,UMPED,UMPTY,UNAPT,UNARC,UNARM,UNARY,UNAUS,UNBID,UNBOX,UNCAP,UNCIA,UNCLE,UNCOS,UNCOY,UNCRY,UNCUT,UNDAE,UNDEE,UNDER,UNDID,UNDIM,UNDUE,UNFIT,UNFUN,UNGOT,UNHIP,UNIFY,UNION,UNITE,UNITS,UNITY,UNJAM,UNKED,UNKET,UNKEY,UNKID,UNLAY,UNLED,UNLET,UNLIT,UNMAN,UNMAP,UNMET,UNMEW,UNMIX,UNODE,UNOIL,UNPEG,UNPEN,UNPIN,UNRED,UNREF,UNRIG,UNRIP,UNSAY,UNSET,UNSEW,UNSEX,UNSOD,UNTAP,UNTAX,UNTIE,UNTIL,UNWED,UNWET,UNWIT,UNWON,UNZIP,UPBOW,UPPED,UPPER,UPSET,URBAN,UREAL,UREAS,URGED,URGER,URGES,URIAL,URINE,URNED,USAGE,USERS,USHER,USING,USUAL,USURP,USURY,UTERI,UTILE,UTTER,UVEAL,UVEAS,UVULA,VAGUE,VAGUS,VAILS,VAINS,VALES,VALET,VALID,VALOR,VALUE,VALVE,VAMPS,VAMPY,VANDA,VANED,VANES,VANGS,VAPID,VAPOR,VARAS,VARIA,VARNA,VASAL,VASES,VASTS,VASTY,VATIC,VATOS,VAULT,VAUNT,VEALS,VEALY,VEENA,VEEPS,VEERS,VEERY,VEGAN,VEGAS,VEGES,VEGIE,VEILS,VEILY,VEINS,VEINY,VELAR,VELDS,VELDT,VELUM,VENAL,VENDS,VENOM,VENTS,VENUE,VENUS,VERBS,VERGE,VERSE,VERSO,VERST,VERTS,VERTU,VERVE,VESTA,VESTS,VETCH,VEXED,VEXER,VEXES,VIAND,VIBES,VICAR,VIDEO,VIERS,VIEWS,VIEWY,VIGAS,VIGOR,VILER,VILLA,VILLS,VIMEN,VINAL,VINAS,VINCA,VINED,VINES,VINIC,VINOS,VINYL,VIOLA,VIOLS,VIPER,VIRAL,VIREO,VIRES,VIRGA,VIRID,VIRTU,VIRUS,VISAS,VISED,VISES,VISIT,VISOR,VISTA,VITAE,VITAL,VITRO,VITTY,VIVAS,VIVAT,VIVER,VIVES,VIVID,VIXEN,VIZOR,VOCAB,VOCAL,VODKA,VOGUE,VOICE,VOIDS,VOILA,VOILE,VOLAR,VOLED,VOLES,VOLKS,VOLTA,VOLTS,VOLVA,VOMER,VOMIT,VOTED,VOTER,VOTES,VOUCH,VOWED,VOWEL,VOWER,VROOM,VUGGS,VUGGY,VUGHS,VULGO,VULNS,VULVA,VYING,WACKO,WACKY,WADDY,WADED,WADER,WADES,WADIS,WAFER,WAFTS,WAGED,WAGER,WAGES,WAGON,WAHOO,WAIFS,WAILS,WAIST,WAITS,WAIVE,WAKED,WAKEN,WAKER,WAKES,WALKS,WALLA,WALLS,WALLY,WALTZ,WANDS,WANED,WANES,WANGS,WANKS,WANLY,WANTS,WARDS,WARED,WARES,WARMS,WARNS,WARPS,WARTS,WARTY,WASES,WASHY,WASPS,WASPY,WASTE,WATCH,WATER,WATTS,WAUKS,WAULS,WAVED,WAVER,WAVES,WAVEY,WAXED,WAXEN,WAXER,WAXES,WAZOO,WEALD,WEALS,WEANS,WEARS,WEARY,WEAVE,WEBBY,WEBER,WEDGE,WEDGY,WEEDS,WEEDY,WEEKS,WEENS,WEENY,WEEPS,WEEPY,WEETS,WEFTS,WEIGH,WEIRD,WEIRS,WELSH,WELTS,WENCH,WENDS,WENNY,WESTS,WETLY,WHACK,WHALE,WHAMO,WHAMS,WHANG,WHAPS,WHARF,WHATS,WHAUP,WHEAL,WHEAT,WHEEL,WHELK,WHELM,WHELP,WHENS,WHERE,WHETS,WHEWS,WHEYS,WHICH,WHIDS,WHIFF,WHILE,WHIMS,WHINE,WHINS,WHINY,WHIPS,WHIPT,WHIRL,WHIRR,WHIRS,WHISK,WHIST,WHITE,WHITS,WHITY,WHIZZ,WHOLE,WHOMP,WHOOP,WHOPS,WHORE,WHORL,WHOSE,WHOSO,WHUMP,WICKS,WIDEN,WIDER,WIDES,WIDOW,WIDTH,WIELD,WIFED,WIFES,WIFEY,WIFTY,WIGAN,WIGGY,WIGHT,WILDS,WILED,WILES,WILLS,WILLY,WILTS,WIMPS,WIMPY,WINCE,WINCH,WINDS,WINDY,WINED,WINES,WINEY,WINGS,WINGY,WINKS,WINOS,WIPED,WIPER,WIPES,WIRED,WIRER,WIRES,WISED,WISER,WISES,WISPS,WISPY,WITCH,WITHE,WITHS,WITHY,WITTY,WIVED,WIVER,WIVES,WIZEN,WIZES,WOADS,WOALD,WODGE,WOKEN,WOLDS,WOLFS,WOMAN,WOMBS,WOMBY,WOMEN,WONKS,WONKY,WONTS,WOODS,WOODY,WOOED,WOOER,WOOFS,WOOFY,WOOLY,WOOPS,WOOSH,WOOZY,WORDS,WORDY,WORKS,WORLD,WORMS,WORMY,WORRY,WORSE,WORST,WORTH,WORTS,WOULD,WOUND,WOVEN,WOWED,WRACK,WRANG,WRAPS,WRAPT,WRATH,WREAK,WRECK,WREST,WRIER,WRIES,WRING,WRIST,WRITE,WRITS,WRONG,WROTE,WROTH,WRUNG,WURST,WUSSY,XEBEC,XENIA,XENIC,XENON,XERIC,XEROX,XERUS,XIANS,XYSTS,YACHT,YACKS,YAHOO,YALES,YAMPS,YANGS,YANKS,YAPOK,YAUDS,YAULD,YAUPS,YAWED,YAWLS,YAWNS,YAWNY,YAWPS,YEAHS,YEARN,YEARS,YEAST,YEGGS,YELKS,YELLS,YELPS,YENTA,YENTE,YERBA,YERKS,YESES,YETIS,YETTS,YEUCH,YEUKS,YEUKY,YIELD,YIKES,YILLS,YINCE,YIPES,YIRDS,YIRRS,YIRTH,YOBBO,YOCKS,YODEL,YODHS,YODLE,YOGAS,YOGEE,YOGHS,YOGIC,YOGIN,YOGIS,YOKED,YOKEL,YOKER,YOKES,YOLKS,YOLKY,YOMIM,YONIC,YONIS,YOOPS,YORES,YOUNG,YOURN,YOURS,YOUSE,YOUTH,YOWED,YOWES,YOWIE,YOWLS,YUANS,YUCAS,YUCCA,YUCCH,YUCKS,YUCKY,YUGAS,YUKKS,YUKKY,YULES,YUMMY,YUPON,YUPPY,YURTS,ZAIRE,ZAMBO,ZAPPY,ZAZEN,ZEALS,ZEBRA,ZEBUS,ZEINS,ZERKS,ZEROS,ZESTS,ZESTY,ZETAS,ZILCH,ZINCS,ZINCY,ZINEB,ZINES,ZINGS,ZINGY,ZINKY,ZIPPY,ZITIS,ZLOTY,ZOEAE,ZOEAL,ZOEAS,ZOMBI,ZONAL,ZONED,ZONER,ZONES,ZONKS,ZOOEY,ZOOID,ZOOKS,ZOOMS,ZOOMY,ZOPPA,ZOPPO,ZORIS,ZOUKS,ZOWEE,ZOWIE,ZUZIM,ZYMES".split(','));
+
+        // Letter values for scoring
+        const LETTER_VALUES = {
+            'A': 1, 'B': 3, 'C': 3, 'D': 2, 'E': 1, 'F': 4, 'G': 2, 'H': 4, 'I': 1,
+            'J': 8, 'K': 5, 'L': 1, 'M': 3, 'N': 1, 'O': 1, 'P': 3, 'Q': 10, 'R': 1,
+            'S': 1, 'T': 1, 'U': 1, 'V': 4, 'W': 4, 'X': 8, 'Y': 4, 'Z': 10
+        };
+
+        // Generate random 5-letter game code (24^5 = 7.9 million combinations)
+        // Removed I and O to avoid confusion with 1 and 0
+        function generateGameCode() {
+            const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+            let code = '';
+            for (let i = 0; i < 5; i++) {
+                code += letters[Math.floor(Math.random() * letters.length)];
+            }
+            return code;
+        }
+
+        // ============ SHARE FUNCTIONS ============
+        
+        function copyGameCode() {
+            const code = gameState.gameCode;
+            if (!code) return;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                // Show feedback
+                const feedback = document.getElementById('copy-feedback');
+                feedback.classList.add('show');
+                setTimeout(() => feedback.classList.remove('show'), 1500);
+            }).catch(err => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = code;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                const feedback = document.getElementById('copy-feedback');
+                feedback.classList.add('show');
+                setTimeout(() => feedback.classList.remove('show'), 1500);
+            });
+        }
+        
+        async function shareGameCode() {
+            const code = gameState.gameCode;
+            if (!code) return;
+            
+            const shareData = {
+                title: '🥊 Word Boxing Challenge!',
+                text: `Join my Word Boxing game! Enter code: ${code}`,
+                url: window.location.href
+            };
+            
+            // Check if Web Share API is available
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        // User cancelled, do nothing
+                        console.log('Share cancelled');
+                    }
+                }
+            } else {
+                // Fallback: copy to clipboard and show message
+                copyGameCode();
+                showMessage('Code copied! Paste it in a message to share.', 'info');
+            }
+        }
+        
+        // Check if share is supported and hide button if not on mobile
+        function updateShareButtonVisibility() {
+            const shareBtn = document.getElementById('share-btn');
+            if (shareBtn) {
+                // Show share button on mobile or if Web Share API is available
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                const hasShareAPI = navigator.share !== undefined;
+                shareBtn.style.display = (isMobile || hasShareAPI) ? 'flex' : 'none';
+            }
+        }
+
+        // Show/hide phases
+        function showPhase(phaseId) {
+            document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+            document.getElementById(phaseId).classList.add('active');
+            
+            // Update share button visibility when showing create-waiting phase
+            if (phaseId === 'phase-create-waiting') {
+                updateShareButtonVisibility();
+            }
+        }
+
+        // Show message toast
+        function showMessage(text, type = 'info') {
+            const toast = document.getElementById('message-toast');
+            toast.textContent = text;
+            toast.className = `message-toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Update connection status display
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connection-status');
+            if (connected) {
+                status.className = 'connection-status connected';
+                status.innerHTML = '<div class="connection-dot"></div><span>Connected</span>';
+            } else {
+                status.className = 'connection-status disconnected';
+                status.innerHTML = '<div class="connection-dot"></div><span>Disconnected</span>';
+            }
+        }
+
+        // ============ LOBBY FUNCTIONS ============
+
+        // ============ PASS & PLAY MODE ============
+
+        let passPlayState = {
+            active: false,
+            redWord: '',
+            blueWord: '',
+            redPlannedWords: ['', '', ''],
+            bluePlannedWords: ['', '', ''],
+            redRevealed: [false, false, false, false, false],
+            blueRevealed: [false, false, false, false, false],
+            redGuessedLetters: new Set(),
+            blueGuessedLetters: new Set(),
+            currentPlayer: null
+        };
+
+        function startPassAndPlay() {
+            passPlayState.active = true;
+            passPlayState.redWord = '';
+            passPlayState.blueWord = '';
+            passPlayState.redPlannedWords = ['', '', ''];
+            passPlayState.bluePlannedWords = ['', '', ''];
+            passPlayState.redRevealed = [false, false, false, false, false];
+            passPlayState.blueRevealed = [false, false, false, false, false];
+            passPlayState.redGuessedLetters = new Set();
+            passPlayState.blueGuessedLetters = new Set();
+            
+            gameState.round = 1;
+            gameState.myWins = 0;
+            gameState.opponentWins = 0;
+            gameState.status = 'setup'; // FIX: Set status so continueAsPlayer works
+            document.getElementById('red-wins').textContent = '0';
+            document.getElementById('blue-wins').textContent = '0';
+            document.getElementById('round-number').textContent = '1';
+            
+            // Hide connection status in pass & play
+            document.getElementById('connection-status').style.display = 'none';
+            
+            // Red picks mode
+            gameState.myRole = 'red';
+            passPlayState.currentPlayer = 'red'; // FIX: Also set currentPlayer
+            showPhase('phase-mode-select');
+        }
+
+        function continueAsPlayer(player) {
+            passPlayState.currentPlayer = player;
+            gameState.myRole = player;
+            
+            // Load this player's state
+            if (player === 'red') {
+                gameState.myWord = passPlayState.redWord;
+                gameState.opponentWord = passPlayState.blueWord;
+                gameState.myRevealed = [...passPlayState.redRevealed];
+                gameState.opponentRevealed = [...passPlayState.blueRevealed];
+                gameState.myGuessedLetters = new Set(passPlayState.redGuessedLetters);
+                gameState.myPlannedWords = [...passPlayState.redPlannedWords];
+                gameState.opponentPlannedWords = [...passPlayState.bluePlannedWords];
+            } else {
+                gameState.myWord = passPlayState.blueWord;
+                gameState.opponentWord = passPlayState.redWord;
+                gameState.myRevealed = [...passPlayState.blueRevealed];
+                gameState.opponentRevealed = [...passPlayState.redRevealed];
+                gameState.myGuessedLetters = new Set(passPlayState.blueGuessedLetters);
+                gameState.myPlannedWords = [...passPlayState.bluePlannedWords];
+                gameState.opponentPlannedWords = [...passPlayState.redPlannedWords];
+            }
+            
+            gameState.myScore = calculateWordScore(gameState.myWord);
+            gameState.opponentScore = calculateWordScore(gameState.opponentWord);
+            
+            // Determine what phase we should be in
+            if (gameState.status === 'setup') {
+                if (gameState.mode === 'advanced') {
+                    startWordPlanning();
+                } else {
+                    startWordInput();
+                }
+            } else if (gameState.status === 'battle') {
+                gameState.isMyTurn = true;
+                setupBattleUI();
+                showPhase('phase-battle');
+            }
+        }
+
+        function savePlayerState() {
+            // Save current player's state back to passPlayState
+            if (passPlayState.currentPlayer === 'red') {
+                passPlayState.redWord = gameState.myWord;
+                passPlayState.redRevealed = [...gameState.myRevealed];
+                passPlayState.blueRevealed = [...gameState.opponentRevealed];
+                passPlayState.redGuessedLetters = new Set(gameState.myGuessedLetters);
+                passPlayState.redPlannedWords = [...gameState.myPlannedWords];
+            } else {
+                passPlayState.blueWord = gameState.myWord;
+                passPlayState.blueRevealed = [...gameState.myRevealed];
+                passPlayState.redRevealed = [...gameState.opponentRevealed];
+                passPlayState.blueGuessedLetters = new Set(gameState.myGuessedLetters);
+                passPlayState.bluePlannedWords = [...gameState.myPlannedWords];
+            }
+        }
+
+        function passToOtherPlayer() {
+            savePlayerState();
+            const otherPlayer = passPlayState.currentPlayer === 'red' ? 'blue' : 'red';
+            showPhase(`phase-pass-${otherPlayer}`);
+        }
+
+        // ============ ONLINE MULTIPLAYER ============
+
+        function createGame() {
+            gameState.gameCode = generateGameCode();
+            gameState.myRole = 'red';
+            gameState.status = 'waiting';
+            
+            // Determine if this is a rated game (both players signed in)
+            gameState.isRatedGame = currentUser !== null;
+            
+            document.getElementById('display-game-code').textContent = gameState.gameCode;
+            showPhase('phase-create-waiting');
+            
+            if (isFirebaseReady) {
+                // Create game in Firebase
+                gameRef = db.ref('games/' + gameState.gameCode);
+                gameRef.set({
+                    status: 'waiting',
+                    mode: null,
+                    round: 1,
+                    currentTurn: null,
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    isRated: gameState.isRatedGame,
+                    red: {
+                        deviceId: deviceId,
+                        odid: currentUser ? currentUser.uid : null,
+                        displayName: currentUser ? currentUser.displayName : 'Guest',
+                        rating: userProfile.rating,
+                        word: '',
+                        score: 0,
+                        wins: 0,
+                        revealed: [false, false, false, false, false],
+                        guessedLetters: [],
+                        connected: true,
+                        ready: false
+                    },
+                    blue: {
+                        deviceId: '',
+                        odid: null,
+                        displayName: 'Waiting...',
+                        rating: 1200,
+                        word: '',
+                        score: 0,
+                        wins: 0,
+                        revealed: [false, false, false, false, false],
+                        guessedLetters: [],
+                        connected: false,
+                        ready: false
+                    }
+                });
+
+                // Listen for opponent joining
+                gameRef.on('value', handleGameUpdate);
+                
+                // Handle disconnect
+                gameRef.child('red/connected').onDisconnect().set(false);
+            } else {
+                // Demo mode - simulate opponent joining after 3 seconds
+                showMessage('Demo mode: Simulating opponent...', 'info');
+                setTimeout(() => {
+                    showMessage('Opponent joined!', 'success');
+                    showPhase('phase-mode-select');
+                }, 3000);
+            }
+        }
+
+        function showJoinGame() {
+            showPhase('phase-join');
+            setupCodeInput();
+        }
+
+        function setupCodeInput() {
+            const container = document.getElementById('code-input');
+            const inputs = container.querySelectorAll('.code-letter');
+            
+            inputs.forEach((input, index) => {
+                input.value = '';
+                
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.toUpperCase();
+                    if (/^[A-Z]$/.test(value)) {
+                        e.target.value = value;
+                        if (index < 4) inputs[index + 1].focus();
+                        checkCodeComplete();
+                    } else {
+                        e.target.value = '';
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+
+            inputs[0].focus();
+        }
+
+        function checkCodeComplete() {
+            const inputs = document.querySelectorAll('#code-input .code-letter');
+            let code = '';
+            inputs.forEach(input => code += input.value);
+            document.getElementById('join-btn').disabled = code.length !== 5;
+        }
+
+        function getEnteredCode() {
+            const inputs = document.querySelectorAll('#code-input .code-letter');
+            let code = '';
+            inputs.forEach(input => code += input.value);
+            return code.toUpperCase();
+        }
+
+        function joinGame() {
+            const code = getEnteredCode();
+            gameState.gameCode = code;
+            gameState.myRole = 'blue';
+            
+            if (isFirebaseReady) {
+                // Check if game exists
+                gameRef = db.ref('games/' + code);
+                gameRef.once('value').then(snapshot => {
+                    if (snapshot.exists()) {
+                        const game = snapshot.val();
+                        if (game.status === 'waiting' && !game.blue.deviceId) {
+                            // Store opponent info
+                            gameState.opponentUserId = game.red.odid;
+                            gameState.opponentDisplayName = game.red.displayName || 'Opponent';
+                            gameState.opponentUserRating = game.red.rating || 1200;
+                            
+                            // Game is rated only if both players are signed in
+                            gameState.isRatedGame = game.isRated && currentUser !== null;
+                            
+                            // Join the game
+                            gameRef.child('blue').update({
+                                deviceId: deviceId,
+                                odid: currentUser ? currentUser.uid : null,
+                                displayName: currentUser ? currentUser.displayName : 'Guest',
+                                rating: userProfile.rating,
+                                connected: true
+                            });
+                            
+                            // Update isRated if blue is not signed in
+                            if (!currentUser) {
+                                gameRef.child('isRated').set(false);
+                            }
+                            
+                            gameRef.child('status').set('setup');
+                            
+                            showPhase('phase-join-waiting');
+                            showMessage('Joined game!', 'success');
+                            
+                            // Listen for game updates
+                            gameRef.on('value', handleGameUpdate);
+                            gameRef.child('blue/connected').onDisconnect().set(false);
+                        } else {
+                            showMessage('Game not available', 'error');
+                        }
+                    } else {
+                        showMessage('Game not found', 'error');
+                    }
+                });
+            } else {
+                // Demo mode
+                showPhase('phase-join-waiting');
+                showMessage('Demo mode: Joined game!', 'success');
+                setTimeout(() => {
+                    gameState.mode = 'beginner';
+                    startWordInput();
+                }, 2000);
+            }
+        }
+
+        function cancelGame() {
+            if (gameRef) {
+                gameRef.remove();
+                gameRef.off();
+                gameRef = null;
+            }
+            gameState = {
+                gameCode: null,
+                myRole: null,
+                mode: 'beginner',
+                status: 'lobby',
+                round: 1,
+                myWord: '',
+                opponentWord: '',
+                myScore: 0,
+                opponentScore: 0,
+                myWins: 0,
+                opponentWins: 0,
+                currentTurn: null,
+                myRevealed: [false, false, false, false, false],
+                myGuessedLetters: new Set(),
+                isMyTurn: false
+            };
+            showPhase('phase-lobby');
+        }
+
+        // ============ GAME UPDATE HANDLER ============
+
+        function handleGameUpdate(snapshot) {
+            if (!snapshot.exists()) return;
+            
+            const game = snapshot.val();
+            console.log('=== GAME UPDATE ===');
+            console.log('Firebase game.status:', game.status);
+            console.log('Local gameState.status:', gameState.status);
+            console.log('Red ready:', game.red?.ready, 'Blue ready:', game.blue?.ready);
+            
+            // Check if opponent joined (Red sees Blue join)
+            if (gameState.myRole === 'red' && game.status === 'setup' && gameState.status === 'waiting') {
+                // Capture opponent info
+                gameState.opponentUserId = game.blue.odid;
+                gameState.opponentDisplayName = game.blue.displayName || 'Opponent';
+                gameState.opponentUserRating = game.blue.rating || 1200;
+                gameState.isRatedGame = game.isRated;
+                
+                showMessage('Opponent joined!', 'success');
+                gameState.status = 'setup';
+                showPhase('phase-mode-select');
+            }
+            
+            // Mode was selected (for blue player)
+            if (gameState.myRole === 'blue' && game.mode && gameState.status !== 'setup') {
+                gameState.mode = game.mode;
+                gameState.status = 'setup';
+                
+                if (game.mode === 'advanced') {
+                    startWordPlanning();
+                } else {
+                    startWordInput();
+                }
+            }
+            
+            // Check if both players have submitted words (fixes race condition)
+            // Trigger battle when both ready, regardless of current status (unless already in battle)
+            if (game.red && game.blue && 
+                game.red.ready === true && game.blue.ready === true &&
+                game.status !== 'battle' && game.status !== 'finished') {
+                console.log('=== BOTH PLAYERS READY ===');
+                console.log('Game status:', game.status);
+                console.log('Red ready:', game.red.ready, 'Blue ready:', game.blue.ready);
+                console.log('Red word:', game.red.word, 'Blue word:', game.blue.word);
+                console.log('My role:', gameState.myRole);
+                
+                // Trigger battle transition (both can try, Firebase handles it)
+                console.log('Triggering battle transition...');
+                gameRef.child('status').set('battle');
+            }
+            
+            // Both players ready - start battle
+            if (game.status === 'battle' && gameState.status !== 'battle') {
+                console.log('=== STARTING BATTLE ===');
+                console.log('My role:', gameState.myRole);
+                gameState.status = 'battle';
+                const opponent = gameState.myRole === 'red' ? 'blue' : 'red';
+                
+                // Get opponent's word (and planned words in advanced mode)
+                if (gameState.mode === 'advanced' && game[opponent].plannedWords) {
+                    gameState.opponentPlannedWords = game[opponent].plannedWords;
+                    gameState.opponentWord = game[opponent].plannedWords[gameState.round - 1];
+                } else {
+                    gameState.opponentWord = game[opponent].word;
+                }
+                gameState.opponentScore = calculateWordScore(gameState.opponentWord);
+                
+                // Determine who goes first (lower score)
+                const myScore = calculateWordScore(gameState.myWord);
+                const theirScore = gameState.opponentScore;
+                gameState.currentTurn = myScore <= theirScore ? gameState.myRole : opponent;
+                gameState.isMyTurn = gameState.currentTurn === gameState.myRole;
+                
+                startBattle();
+            }
+            
+            // Turn updates during battle
+            if (game.status === 'battle' && gameState.status === 'battle') {
+                updateBattleFromGame(game);
+            }
+            
+            // Round finished
+            if (game.status === 'round_over') {
+                handleRoundOver(game);
+            }
+            
+            // Match finished
+            if (game.status === 'finished') {
+                handleMatchOver(game);
+            }
+        }
+
+        // ============ MODE SELECTION ============
+
+        function selectMode(mode) {
+            gameState.mode = mode;
+            
+            if (isFirebaseReady && gameRef) {
+                gameRef.child('mode').set(mode);
+            }
+            
+            if (mode === 'advanced') {
+                startWordPlanning();
+            } else {
+                startWordInput();
+            }
+        }
+
+        // ============ ADVANCED WORD PLANNING ============
+
+        function startWordPlanning() {
+            document.getElementById('scoreboard').style.display = 'flex';
+            document.getElementById('mode-badge-container').style.display = 'block';
+            
+            const titleEl = document.getElementById('planning-title');
+            titleEl.textContent = `${gameState.myRole === 'red' ? '🥊 Red' : 'Blue 🥊'} Corner - Plan Your 3 Words`;
+            titleEl.className = `phase-title ${gameState.myRole}`;
+            
+            setupPlanningInputs();
+            updateAvailableLetters();
+            showPhase('phase-word-planning');
+        }
+
+        function setupPlanningInputs() {
+            for (let round = 1; round <= 3; round++) {
+                const container = document.getElementById(`plan-word-${round}`);
+                container.innerHTML = '';
+                
+                for (let i = 0; i < 5; i++) {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'letter-input';
+                    input.maxLength = 1;
+                    input.dataset.round = round;
+                    input.dataset.index = i;
+                    
+                    input.addEventListener('input', (e) => handlePlanInput(e, round, i));
+                    input.addEventListener('keydown', (e) => handlePlanKeydown(e, round, i));
+                    
+                    container.appendChild(input);
+                }
+            }
+        }
+
+        function handlePlanInput(e, round, index) {
+            const value = e.target.value.toUpperCase();
+            if (/^[A-Z]$/.test(value)) {
+                e.target.value = value;
+                e.target.classList.add('filled');
+                
+                // Move to next input
+                const container = document.getElementById(`plan-word-${round}`);
+                const inputs = container.querySelectorAll('.letter-input');
+                if (index < 4) {
+                    inputs[index + 1].focus();
+                } else if (round < 3) {
+                    const nextContainer = document.getElementById(`plan-word-${round + 1}`);
+                    const nextInputs = nextContainer.querySelectorAll('.letter-input');
+                    nextInputs[0].focus();
+                }
+            } else {
+                e.target.value = '';
+                e.target.classList.remove('filled');
+            }
+            
+            validatePlan();
+            updateAvailableLetters();
+        }
+
+        function handlePlanKeydown(e, round, index) {
+            if (e.key === 'Backspace' && !e.target.value) {
+                if (index > 0) {
+                    const container = document.getElementById(`plan-word-${round}`);
+                    const inputs = container.querySelectorAll('.letter-input');
+                    inputs[index - 1].focus();
+                    inputs[index - 1].value = '';
+                    inputs[index - 1].classList.remove('filled');
+                } else if (round > 1) {
+                    const prevContainer = document.getElementById(`plan-word-${round - 1}`);
+                    const prevInputs = prevContainer.querySelectorAll('.letter-input');
+                    prevInputs[4].focus();
+                    prevInputs[4].value = '';
+                    prevInputs[4].classList.remove('filled');
+                }
+                validatePlan();
+                updateAvailableLetters();
+            }
+        }
+
+        function getPlannedWords() {
+            const words = [];
+            for (let round = 1; round <= 3; round++) {
+                const container = document.getElementById(`plan-word-${round}`);
+                const inputs = container.querySelectorAll('.letter-input');
+                let word = '';
+                inputs.forEach(input => word += input.value.toUpperCase());
+                words.push(word);
+            }
+            return words;
+        }
+
+        function validatePlan() {
+            const words = getPlannedWords();
+            const statusEl = document.getElementById('plan-status');
+            const submitBtn = document.getElementById('submit-plan-btn');
+            
+            let errors = [];
+            
+            // Track letters used across all words (each letter counted once per word it appears in)
+            const lettersByWord = [];
+            
+            // Check each word and highlight invalid ones
+            for (let round = 1; round <= 3; round++) {
+                const word = words[round - 1];
+                const container = document.getElementById(`plan-word-${round}`);
+                const inputs = container.querySelectorAll('.letter-input');
+                
+                // Get unique letters in this word
+                const uniqueInWord = new Set();
+                for (const letter of word) {
+                    if (letter) uniqueInWord.add(letter);
+                }
+                lettersByWord.push(uniqueInWord);
+                
+                if (word.length === 5) {
+                    if (!VALID_WORDS.has(word)) {
+                        errors.push(`"${word}" is not a valid word`);
+                        inputs.forEach(input => input.classList.add('invalid'));
+                    } else {
+                        inputs.forEach(input => input.classList.remove('invalid'));
+                    }
+                } else {
+                    inputs.forEach(input => input.classList.remove('invalid'));
+                }
+            }
+            
+            // Check for letters used in multiple words
+            const letterWordCount = {};
+            const duplicateLetters = new Set();
+            
+            for (let i = 0; i < lettersByWord.length; i++) {
+                for (const letter of lettersByWord[i]) {
+                    if (!letterWordCount[letter]) {
+                        letterWordCount[letter] = [];
+                    }
+                    letterWordCount[letter].push(i + 1);
+                }
+            }
+            
+            for (const letter in letterWordCount) {
+                if (letterWordCount[letter].length > 1) {
+                    duplicateLetters.add(letter);
+                }
+            }
+            
+            if (duplicateLetters.size > 0) {
+                errors.push(`Letters used in multiple words: ${Array.from(duplicateLetters).join(', ')}`);
+            }
+            
+            // Update status
+            if (errors.length > 0) {
+                statusEl.textContent = errors[0];
+                statusEl.className = 'plan-status error';
+                submitBtn.disabled = true;
+            } else if (words.some(w => w.length < 5)) {
+                statusEl.textContent = 'Enter all 3 words';
+                statusEl.className = 'plan-status';
+                submitBtn.disabled = true;
+            } else {
+                statusEl.textContent = '✓ All words valid! No letters repeated across words.';
+                statusEl.className = 'plan-status success';
+                submitBtn.disabled = false;
+            }
+        }
+
+        function updateAvailableLetters() {
+            const words = getPlannedWords();
+            
+            // Get unique letters from each word, then combine
+            const usedLetters = new Set();
+            words.forEach(word => {
+                const uniqueInWord = new Set(word.split(''));
+                uniqueInWord.forEach(letter => {
+                    if (letter) usedLetters.add(letter);
+                });
+            });
+            
+            const container = document.getElementById('available-letters');
+            container.innerHTML = '';
+            
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            for (const letter of alphabet) {
+                const chip = document.createElement('div');
+                chip.className = 'letter-chip';
+                chip.textContent = letter;
+                
+                if (usedLetters.has(letter)) {
+                    chip.classList.add('used');
+                } else {
+                    chip.classList.add('available');
+                }
+                
+                container.appendChild(chip);
+            }
+            
+            document.getElementById('letters-used-count').textContent = usedLetters.size;
+        }
+
+        function submitPlan() {
+            const words = getPlannedWords();
+            gameState.myPlannedWords = words;
+            gameState.myWord = words[0]; // Set round 1 word
+            gameState.myScore = calculateWordScore(gameState.myWord);
+            
+            // Pass & Play mode
+            if (passPlayState.active) {
+                savePlayerState();
+                
+                if (passPlayState.currentPlayer === 'red') {
+                    passPlayState.redPlannedWords = [...words];
+                    passPlayState.redWord = words[0];
+                    // Pass to blue to plan their words
+                    showPhase('phase-pass-blue');
+                } else {
+                    passPlayState.bluePlannedWords = [...words];
+                    passPlayState.blueWord = words[0];
+                    // Both plans entered - start battle
+                    const redScore = calculateWordScore(passPlayState.redWord);
+                    const blueScore = calculateWordScore(passPlayState.blueWord);
+                    gameState.currentTurn = redScore <= blueScore ? 'red' : 'blue';
+                    gameState.status = 'battle';
+                    // Pass to whoever goes first
+                    showPhase(`phase-pass-${gameState.currentTurn}`);
+                }
+                return;
+            }
+            
+            if (isFirebaseReady && gameRef) {
+                gameRef.child(gameState.myRole).update({
+                    plannedWords: words,
+                    word: words[0],
+                    score: gameState.myScore,
+                    ready: true
+                });
+                
+                // Check if both players are ready
+                gameRef.once('value').then(snapshot => {
+                    const game = snapshot.val();
+                    if (game.red.ready && game.blue.ready) {
+                        gameRef.child('status').set('battle');
+                    }
+                });
+            }
+            
+            showPhase('phase-waiting-plan');
+            
+            // Demo mode: simulate opponent planning after delay
+            if (!isFirebaseReady && !passPlayState.active) {
+                setTimeout(() => {
+                    // Simulate opponent's planned words
+                    const demoWordSets = [
+                        ['CRANE', 'BLOAT', 'JUMPS'],
+                        ['STORM', 'BLADE', 'FUNKY'],
+                        ['GHOST', 'REALM', 'WINDY']
+                    ];
+                    gameState.opponentPlannedWords = demoWordSets[Math.floor(Math.random() * demoWordSets.length)];
+                    gameState.opponentWord = gameState.opponentPlannedWords[0];
+                    gameState.opponentScore = calculateWordScore(gameState.opponentWord);
+                    
+                    // Determine who goes first (lower score)
+                    const myScore = gameState.myScore;
+                    const theirScore = gameState.opponentScore;
+                    gameState.currentTurn = myScore <= theirScore ? gameState.myRole : (gameState.myRole === 'red' ? 'blue' : 'red');
+                    gameState.isMyTurn = gameState.currentTurn === gameState.myRole;
+                    gameState.status = 'battle';
+                    
+                    showMessage('Opponent ready! Battle begins!', 'success');
+                    startBattle();
+                }, 2500);
+            }
+        }
+
+        // ============ WORD INPUT (Beginner Mode) ============
+
+        function startWordInput() {
+            document.getElementById('scoreboard').style.display = 'flex';
+            
+            const titleEl = document.getElementById('input-title');
+            titleEl.textContent = `${gameState.myRole === 'red' ? '🥊 Red' : 'Blue 🥊'} Corner - Enter Your Word`;
+            titleEl.className = `phase-title ${gameState.myRole}`;
+            
+            setupWordInput();
+            showPhase('phase-word-input');
+        }
+
+        function setupWordInput() {
+            const container = document.getElementById('word-input');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'letter-input';
+                input.maxLength = 1;
+                input.dataset.index = i;
+                
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.toUpperCase();
+                    if (/^[A-Z]$/.test(value)) {
+                        e.target.value = value;
+                        e.target.classList.add('filled');
+                        if (i < 4) container.children[i + 1].focus();
+                        updateWordScore();
+                        validateWord();
+                    } else {
+                        e.target.value = '';
+                        e.target.classList.remove('filled');
+                    }
+                });
+
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !e.target.value && i > 0) {
+                        container.children[i - 1].focus();
+                        container.children[i - 1].value = '';
+                        container.children[i - 1].classList.remove('filled');
+                        updateWordScore();
+                        validateWord();
+                    }
+                });
+
+                container.appendChild(input);
+            }
+            
+            container.children[0].focus();
+        }
+
+        function getEnteredWord() {
+            const inputs = document.querySelectorAll('#word-input .letter-input');
+            let word = '';
+            inputs.forEach(input => word += input.value.toUpperCase());
+            return word;
+        }
+
+        function calculateWordScore(word) {
+            let score = 0;
+            for (const letter of word) {
+                score += LETTER_VALUES[letter] || 0;
+            }
+            return score;
+        }
+
+        function updateWordScore() {
+            const word = getEnteredWord();
+            const score = calculateWordScore(word);
+            document.getElementById('word-score').textContent = score;
+        }
+
+        function validateWord() {
+            const word = getEnteredWord();
+            const inputs = document.querySelectorAll('#word-input .letter-input');
+            const btn = document.getElementById('submit-word-btn');
+            
+            if (word.length === 5) {
+                if (VALID_WORDS.has(word)) {
+                    inputs.forEach(input => input.classList.remove('invalid'));
+                    btn.disabled = false;
+                } else {
+                    inputs.forEach(input => input.classList.add('invalid'));
+                    btn.disabled = true;
+                }
+            } else {
+                inputs.forEach(input => input.classList.remove('invalid'));
+                btn.disabled = true;
+            }
+        }
+
+        function submitWord() {
+            const word = getEnteredWord();
+            gameState.myWord = word;
+            gameState.myScore = calculateWordScore(word);
+            
+            // Pass & Play mode
+            if (passPlayState.active) {
+                savePlayerState();
+                
+                if (passPlayState.currentPlayer === 'red') {
+                    passPlayState.redWord = word;
+                    // Pass to blue to enter their word
+                    showPhase('phase-pass-blue');
+                } else {
+                    passPlayState.blueWord = word;
+                    // Both words entered - start battle
+                    // Determine who goes first
+                    const redScore = calculateWordScore(passPlayState.redWord);
+                    const blueScore = calculateWordScore(passPlayState.blueWord);
+                    gameState.currentTurn = redScore <= blueScore ? 'red' : 'blue';
+                    gameState.status = 'battle';
+                    // Pass to whoever goes first
+                    showPhase(`phase-pass-${gameState.currentTurn}`);
+                }
+                return;
+            }
+            
+            if (isFirebaseReady && gameRef) {
+                console.log('Submitting word to Firebase:', word, 'as', gameState.myRole);
+                gameRef.child(gameState.myRole).update({
+                    word: word,
+                    score: gameState.myScore,
+                    ready: true
+                }).then(() => {
+                    console.log('Word submitted successfully, waiting for opponent...');
+                });
+                // Note: The Firebase listener will handle the transition to battle
+                // when it detects both players are ready
+            }
+            
+            showPhase('phase-waiting-word');
+            
+            // Demo mode: simulate opponent word after delay
+            if (!isFirebaseReady && !passPlayState.active) {
+                setTimeout(() => {
+                    const demoWords = ['CRANE', 'STORM', 'BEACH', 'PLANT', 'GHOST'];
+                    gameState.opponentWord = demoWords[Math.floor(Math.random() * demoWords.length)];
+                    gameState.opponentScore = calculateWordScore(gameState.opponentWord);
+                    gameState.currentTurn = gameState.myScore <= gameState.opponentScore ? gameState.myRole : (gameState.myRole === 'red' ? 'blue' : 'red');
+                    gameState.isMyTurn = gameState.currentTurn === gameState.myRole;
+                    gameState.status = 'battle';
+                    startBattle();
+                }, 2000);
+            }
+        }
+
+        // ============ BATTLE ============
+
+        function startBattle() {
+            setupBattleUI();
+            
+            if (gameState.isMyTurn) {
+                showPhase('phase-battle');
+            } else {
+                showPhase('phase-waiting-turn');
+            }
+        }
+
+        function setupBattleUI() {
+            // Setup opponent word display
+            const display = document.getElementById('opponent-word-display');
+            const waitingDisplay = document.getElementById('waiting-opponent-display');
+            display.innerHTML = '';
+            waitingDisplay.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const box = document.createElement('div');
+                box.className = 'letter-box';
+                box.id = `letter-${i}`;
+                
+                // Check for matched letters (letters in my word that are also in opponent's word)
+                const myLetter = gameState.myWord[i];
+                const opponentLetter = gameState.opponentWord[i];
+                
+                if (gameState.myRevealed[i]) {
+                    box.textContent = opponentLetter;
+                    box.classList.add('revealed');
+                } else if (gameState.myWord.includes(opponentLetter)) {
+                    box.textContent = opponentLetter;
+                    box.classList.add('matched');
+                    gameState.myRevealed[i] = true;
+                }
+                
+                display.appendChild(box);
+                waitingDisplay.appendChild(box.cloneNode(true));
+            }
+            
+            // Calculate what opponent can see in MY word (matching letters from their word)
+            for (let i = 0; i < 5; i++) {
+                const myLetter = gameState.myWord[i];
+                if (gameState.opponentWord.includes(myLetter)) {
+                    gameState.opponentRevealed[i] = true;
+                }
+            }
+            
+            updateRevealedCount();
+            
+            // Setup keyboard
+            setupKeyboard();
+            
+            // Setup solve input
+            setupSolveInput();
+            
+            // Update status
+            updateBattleStatus();
+        }
+
+        function updateRevealedCount() {
+            const count = gameState.opponentRevealed.filter(r => r).length;
+            document.getElementById('revealed-count').textContent = count;
+            document.getElementById('waiting-revealed-count').textContent = count;
+        }
+
+        function updateBattleStatus() {
+            const statusBar = document.getElementById('battle-status');
+            const statusText = document.getElementById('battle-status-text');
+            
+            if (gameState.isMyTurn) {
+                statusBar.className = 'status-bar your-turn';
+                statusText.textContent = '🥊 Your Turn!';
+            } else {
+                statusBar.className = 'status-bar opponent-turn';
+                statusText.textContent = '⏳ Opponent\'s Turn...';
+            }
+        }
+
+        function setupKeyboard() {
+            const keyboard = document.getElementById('keyboard');
+            keyboard.innerHTML = '';
+            
+            const rows = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+            
+            rows.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'keyboard-row';
+                
+                for (const letter of row) {
+                    const key = document.createElement('button');
+                    key.className = 'key';
+                    key.textContent = letter;
+                    key.onclick = () => guessLetter(letter);
+                    
+                    if (gameState.myGuessedLetters.has(letter)) {
+                        key.classList.add('used');
+                        key.disabled = true;
+                    }
+                    
+                    rowDiv.appendChild(key);
+                }
+                
+                keyboard.appendChild(rowDiv);
+            });
+        }
+
+        function setupSolveInput() {
+            const container = document.getElementById('solve-input');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'solve-letter';
+                input.maxLength = 1;
+                
+                // Pre-fill revealed letters
+                if (gameState.myRevealed[i]) {
+                    input.value = gameState.opponentWord[i];
+                    input.disabled = true;
+                }
+                
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value.toUpperCase();
+                    if (/^[A-Z]$/.test(value)) {
+                        e.target.value = value;
+                        const inputs = container.querySelectorAll('.solve-letter');
+                        // Find next empty input
+                        for (let j = i + 1; j < 5; j++) {
+                            if (!inputs[j].disabled && !inputs[j].value) {
+                                inputs[j].focus();
+                                break;
+                            }
+                        }
+                    } else {
+                        e.target.value = '';
+                    }
+                });
+
+                container.appendChild(input);
+            }
+        }
+
+        function showGuessMode() {
+            document.getElementById('keyboard').classList.add('active');
+            document.getElementById('solve-section').classList.remove('active');
+        }
+
+        function showSolveMode() {
+            document.getElementById('keyboard').classList.remove('active');
+            document.getElementById('solve-section').classList.add('active');
+            setupSolveInput();
+            
+            // Focus first empty input
+            const inputs = document.querySelectorAll('#solve-input .solve-letter');
+            for (const input of inputs) {
+                if (!input.disabled && !input.value) {
+                    input.focus();
+                    break;
+                }
+            }
+        }
+
+        function cancelSolve() {
+            document.getElementById('solve-section').classList.remove('active');
+        }
+
+        function guessLetter(letter) {
+            if (!gameState.isMyTurn) return;
+            
+            gameState.myGuessedLetters.add(letter);
+            
+            // Check if letter is in opponent's word
+            let found = false;
+            for (let i = 0; i < 5; i++) {
+                if (gameState.opponentWord[i] === letter && !gameState.myRevealed[i]) {
+                    gameState.myRevealed[i] = true;
+                    found = true;
+                }
+            }
+            
+            if (found) {
+                showMessage(`Found "${letter}"!`, 'success');
+            } else {
+                showMessage(`No "${letter}" found`, 'error');
+            }
+            
+            // Update UI
+            setupBattleUI();
+            
+            // End turn
+            endTurn();
+        }
+
+        function attemptSolve() {
+            if (!gameState.isMyTurn) return;
+            
+            const inputs = document.querySelectorAll('#solve-input .solve-letter');
+            let guess = '';
+            inputs.forEach(input => guess += input.value.toUpperCase());
+            
+            if (guess.length !== 5) {
+                showMessage('Enter all 5 letters', 'error');
+                return;
+            }
+            
+            if (guess === gameState.opponentWord) {
+                // Correct!
+                showMessage('Correct! You solved it!', 'success');
+                handleRoundWin();
+            } else {
+                // Wrong
+                showMessage('Wrong guess!', 'error');
+                endTurn();
+            }
+        }
+
+        function endTurn() {
+            gameState.isMyTurn = false;
+            
+            // Pass & Play mode - pass to other player
+            if (passPlayState.active) {
+                passToOtherPlayer();
+                return;
+            }
+            
+            if (isFirebaseReady && gameRef) {
+                // Update Firebase with our revealed state
+                gameRef.child(gameState.myRole).update({
+                    revealed: gameState.myRevealed,
+                    guessedLetters: Array.from(gameState.myGuessedLetters)
+                });
+                
+                // Switch turn
+                const nextTurn = gameState.myRole === 'red' ? 'blue' : 'red';
+                gameRef.child('currentTurn').set(nextTurn);
+            }
+            
+            showPhase('phase-waiting-turn');
+            
+            // Demo mode: simulate opponent turn
+            if (!isFirebaseReady && !passPlayState.active) {
+                setTimeout(() => {
+                    // Simulate opponent action
+                    gameState.isMyTurn = true;
+                    showPhase('phase-battle');
+                    updateBattleStatus();
+                }, 2000);
+            }
+        }
+
+        function handleRoundWin() {
+            gameState.myWins++;
+            
+            if (isFirebaseReady && gameRef) {
+                gameRef.child(gameState.myRole + '/wins').set(gameState.myWins);
+                
+                if (gameState.myWins >= 2) {
+                    gameRef.child('status').set('finished');
+                } else {
+                    gameRef.child('status').set('round_over');
+                }
+            }
+            
+            // Update scoreboard
+            const winsEl = document.getElementById(gameState.myRole + '-wins');
+            winsEl.textContent = gameState.myWins;
+            
+            if (gameState.myWins >= 2) {
+                // Match won!
+                handleMatchWin();
+            } else {
+                // Show round result
+                showRoundResult(true);
+            }
+        }
+
+        function showRoundResult(iWon) {
+            const winnerColor = iWon ? gameState.myRole : (gameState.myRole === 'red' ? 'blue' : 'red');
+            document.getElementById('round-winner-title').textContent = `🎉 ${winnerColor.charAt(0).toUpperCase() + winnerColor.slice(1)} wins the round!`;
+            document.getElementById('round-winner-title').style.color = winnerColor === 'red' ? 'var(--red-corner)' : 'var(--blue-corner)';
+            
+            // In pass & play, show both words clearly
+            if (passPlayState.active) {
+                document.getElementById('reveal-your-word').textContent = `Red: ${passPlayState.redWord}`;
+                document.getElementById('reveal-their-word').textContent = `Blue: ${passPlayState.blueWord}`;
+            } else {
+                document.getElementById('reveal-your-word').textContent = gameState.myWord;
+                document.getElementById('reveal-their-word').textContent = gameState.opponentWord;
+            }
+            showPhase('phase-round-result');
+            
+            // Auto advance after delay
+            if (!isFirebaseReady || passPlayState.active) {
+                setTimeout(() => {
+                    nextRound();
+                }, 3000);
+            }
+        }
+
+        function handleMatchWin() {
+            const title = document.getElementById('champion-title');
+            title.textContent = `${gameState.myRole === 'red' ? 'Red' : 'Blue'} Corner Wins!`;
+            title.className = `champion-title ${gameState.myRole}`;
+            
+            if (passPlayState.active) {
+                // Show red vs blue score
+                const redWins = gameState.myRole === 'red' ? gameState.myWins : gameState.opponentWins;
+                const blueWins = gameState.myRole === 'blue' ? gameState.myWins : gameState.opponentWins;
+                document.getElementById('final-score').textContent = `Red ${redWins} - ${blueWins} Blue`;
+            } else {
+                document.getElementById('final-score').textContent = `${gameState.myWins} - ${gameState.opponentWins}`;
+                
+                // Record rated match result (I won)
+                if (gameState.isRatedGame && currentUser) {
+                    recordMatchResult(
+                        gameState.opponentUserId,
+                        gameState.opponentDisplayName,
+                        gameState.opponentUserRating,
+                        true, // won
+                        `${gameState.myWins}-${gameState.opponentWins}`
+                    );
+                }
+            }
+            showPhase('phase-match-result');
+        }
+
+        function handleMatchLoss() {
+            // Called when opponent wins the match
+            const title = document.getElementById('champion-title');
+            const winner = gameState.myRole === 'red' ? 'Blue' : 'Red';
+            title.textContent = `${winner} Corner Wins!`;
+            title.className = `champion-title ${gameState.myRole === 'red' ? 'blue' : 'red'}`;
+            
+            document.getElementById('final-score').textContent = `${gameState.myWins} - ${gameState.opponentWins}`;
+            
+            // Record rated match result (I lost)
+            if (gameState.isRatedGame && currentUser && !passPlayState.active) {
+                recordMatchResult(
+                    gameState.opponentUserId,
+                    gameState.opponentDisplayName,
+                    gameState.opponentUserRating,
+                    false, // lost
+                    `${gameState.myWins}-${gameState.opponentWins}`
+                );
+            }
+            
+            showPhase('phase-match-result');
+        }
+
+        function updateBattleFromGame(game) {
+            // Update turn
+            const newTurn = game.currentTurn;
+            gameState.isMyTurn = newTurn === gameState.myRole;
+            
+            // Update opponent's progress on our word
+            const opponent = gameState.myRole === 'red' ? 'blue' : 'red';
+            // (We don't show this to the player, but could update UI if needed)
+            
+            if (gameState.isMyTurn) {
+                showPhase('phase-battle');
+            } else {
+                showPhase('phase-waiting-turn');
+            }
+            
+            updateBattleStatus();
+        }
+
+        function handleRoundOver(game) {
+            const opponent = gameState.myRole === 'red' ? 'blue' : 'red';
+            gameState.opponentWins = game[opponent].wins;
+            
+            const iWon = game[gameState.myRole].wins > gameState.myWins;
+            gameState.myWins = game[gameState.myRole].wins;
+            
+            showRoundResult(iWon);
+        }
+
+        function handleMatchOver(game) {
+            const opponent = gameState.myRole === 'red' ? 'blue' : 'red';
+            gameState.myWins = game[gameState.myRole].wins;
+            gameState.opponentWins = game[opponent].wins;
+            
+            const iWon = gameState.myWins >= 2;
+            
+            // Record rated match result
+            if (gameState.isRatedGame && currentUser && !passPlayState.active) {
+                recordMatchResult(
+                    gameState.opponentUserId,
+                    gameState.opponentDisplayName,
+                    gameState.opponentUserRating,
+                    iWon,
+                    `${gameState.myWins}-${gameState.opponentWins}`
+                );
+            }
+            
+            const title = document.getElementById('champion-title');
+            title.textContent = iWon ? 'You Win! 🏆' : 'You Lose 😔';
+            title.className = iWon ? `champion-title ${gameState.myRole}` : 'champion-title';
+            document.getElementById('final-score').textContent = `${gameState.myWins} - ${gameState.opponentWins}`;
+            showPhase('phase-match-result');
+        }
+
+        function nextRound() {
+            gameState.round++;
+            gameState.myRevealed = [false, false, false, false, false];
+            gameState.opponentRevealed = [false, false, false, false, false];
+            gameState.myGuessedLetters = new Set();
+            
+            // Reset pass & play state for new round
+            if (passPlayState.active) {
+                passPlayState.redRevealed = [false, false, false, false, false];
+                passPlayState.blueRevealed = [false, false, false, false, false];
+                passPlayState.redGuessedLetters = new Set();
+                passPlayState.blueGuessedLetters = new Set();
+            }
+            
+            document.getElementById('round-number').textContent = gameState.round;
+            
+            if (gameState.mode === 'advanced') {
+                // Load pre-planned words for this round
+                if (passPlayState.active) {
+                    passPlayState.redWord = passPlayState.redPlannedWords[gameState.round - 1];
+                    passPlayState.blueWord = passPlayState.bluePlannedWords[gameState.round - 1];
+                    const redScore = calculateWordScore(passPlayState.redWord);
+                    const blueScore = calculateWordScore(passPlayState.blueWord);
+                    gameState.currentTurn = redScore <= blueScore ? 'red' : 'blue';
+                    gameState.status = 'battle';
+                    showPhase(`phase-pass-${gameState.currentTurn}`);
+                } else {
+                    gameState.myWord = gameState.myPlannedWords[gameState.round - 1];
+                    gameState.opponentWord = gameState.opponentPlannedWords[gameState.round - 1];
+                    gameState.myScore = calculateWordScore(gameState.myWord);
+                    gameState.opponentScore = calculateWordScore(gameState.opponentWord);
+                    
+                    // Determine who goes first
+                    gameState.currentTurn = gameState.myScore <= gameState.opponentScore ? gameState.myRole : (gameState.myRole === 'red' ? 'blue' : 'red');
+                    gameState.isMyTurn = gameState.currentTurn === gameState.myRole;
+                    gameState.status = 'battle';
+                    
+                    startBattle();
+                }
+            } else {
+                // Beginner mode - enter new word each round
+                gameState.myWord = '';
+                gameState.opponentWord = '';
+                gameState.status = 'setup';
+                
+                if (passPlayState.active) {
+                    passPlayState.redWord = '';
+                    passPlayState.blueWord = '';
+                    // Red enters word first
+                    showPhase('phase-pass-red');
+                } else {
+                    startWordInput();
+                }
+            }
+        }
+
+        function rematch() {
+            // Reset for new match
+            gameState.round = 1;
+            gameState.myWins = 0;
+            gameState.opponentWins = 0;
+            gameState.myWord = '';
+            gameState.opponentWord = '';
+            gameState.myRevealed = [false, false, false, false, false];
+            gameState.opponentRevealed = [false, false, false, false, false];
+            gameState.myGuessedLetters = new Set();
+            gameState.myPlannedWords = ['', '', ''];
+            gameState.opponentPlannedWords = ['', '', ''];
+            gameState.status = 'setup';
+            
+            document.getElementById('round-number').textContent = '1';
+            document.getElementById('red-wins').textContent = '0';
+            document.getElementById('blue-wins').textContent = '0';
+            
+            // Reset pass & play state
+            if (passPlayState.active) {
+                passPlayState.redWord = '';
+                passPlayState.blueWord = '';
+                passPlayState.redPlannedWords = ['', '', ''];
+                passPlayState.bluePlannedWords = ['', '', ''];
+                passPlayState.redRevealed = [false, false, false, false, false];
+                passPlayState.blueRevealed = [false, false, false, false, false];
+                passPlayState.redGuessedLetters = new Set();
+                passPlayState.blueGuessedLetters = new Set();
+                
+                // Red chooses mode
+                gameState.myRole = 'red';
+                passPlayState.currentPlayer = 'red';
+                showPhase('phase-mode-select');
+                return;
+            }
+            
+            if (isFirebaseReady && gameRef) {
+                // Reset game in Firebase
+                gameRef.update({
+                    status: 'setup',
+                    round: 1,
+                    currentTurn: null
+                });
+                gameRef.child('red').update({
+                    word: '', score: 0, wins: 0,
+                    revealed: [false, false, false, false, false],
+                    guessedLetters: [], ready: false,
+                    plannedWords: ['', '', '']
+                });
+                gameRef.child('blue').update({
+                    word: '', score: 0, wins: 0,
+                    revealed: [false, false, false, false, false],
+                    guessedLetters: [], ready: false,
+                    plannedWords: ['', '', '']
+                });
+            }
+            
+            if (gameState.mode === 'advanced') {
+                startWordPlanning();
+            } else {
+                startWordInput();
+            }
+        }
+
+        function exitToLobby() {
+            // Reset pass & play state
+            passPlayState.active = false;
+            document.getElementById('connection-status').style.display = 'block';
+            cancelGame();
+        }
+
+        // ============ THEME TOGGLE ============
+        
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.getElementById('theme-toggle');
+            
+            if (body.getAttribute('data-theme') === 'light') {
+                body.removeAttribute('data-theme');
+                toggle.textContent = '🌙';
+                localStorage.setItem('wordboxing-theme', 'dark');
+            } else {
+                body.setAttribute('data-theme', 'light');
+                toggle.textContent = '☀️';
+                localStorage.setItem('wordboxing-theme', 'light');
+            }
+        }
+        
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('wordboxing-theme');
+            const toggle = document.getElementById('theme-toggle');
+            
+            if (savedTheme === 'light') {
+                document.body.setAttribute('data-theme', 'light');
+                toggle.textContent = '☀️';
+            } else {
+                document.body.removeAttribute('data-theme');
+                toggle.textContent = '🌙';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Word Boxing v0.6.9 - Robust battle sync');
+            console.log('Device ID:', deviceId);
+            console.log('Firebase ready:', isFirebaseReady);
+            
+            // Load saved theme
+            loadSavedTheme();
+            
+            // Set up auth state listener
+            if (auth) {
+                auth.onAuthStateChanged(handleAuthStateChange);
+            } else {
+                // Demo mode - hide sign in, show guest profile
+                document.getElementById('sign-in-btn').style.display = 'none';
+                document.getElementById('create-rated-badge').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
