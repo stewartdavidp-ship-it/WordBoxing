@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Boxing 🥊</title>
-    <!-- Version 0.9.19 - Tutorial text visibility fix (webkit) -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥊</text></svg>">
+    <meta name="version" content="1.0.0">
+    <title>Word Boxing ð¥</title>
+    <!-- Version 1.0.0 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ð¥</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
     <!-- Firebase SDK -->
@@ -2735,11 +2736,11 @@
     <!-- Tutorial Prompt Modal (v1.0.0) -->
     <div class="tutorial-prompt-overlay" id="tutorial-prompt-overlay">
         <div class="tutorial-prompt-modal">
-            <h2>Welcome to Word Boxing! 🥊</h2>
+            <h2>Welcome to Word Boxing! ð¥</h2>
             <p>A competitive 1v1 word puzzle game where you try to guess your opponent's secret word before they guess yours.</p>
             <div class="tutorial-prompt-buttons">
                 <button class="tutorial-prompt-skip" onclick="TutorialManager.dismissPrompt()">Skip Tutorial</button>
-                <button class="tutorial-prompt-start" onclick="TutorialManager.acceptPrompt()">Next →</button>
+                <button class="tutorial-prompt-start" onclick="TutorialManager.acceptPrompt()">Next â</button>
             </div>
         </div>
     </div>
@@ -2755,7 +2756,7 @@
             </div>
             <div class="tutorial-nav">
                 <button class="tutorial-skip" onclick="TutorialManager.skip()">Skip Tutorial</button>
-                <button class="tutorial-next" onclick="TutorialManager.next()">Next →</button>
+                <button class="tutorial-next" onclick="TutorialManager.next()">Next â</button>
             </div>
             <div class="tutorial-progress" id="tutorial-progress"></div>
         </div>
@@ -2769,7 +2770,7 @@
 
     <!-- Opponent Disconnect Banner -->
     <div class="disconnect-banner" id="disconnect-banner">
-        <span>⚠️ Opponent Disconnected</span>
+        <span>â ï¸ Opponent Disconnected</span>
         <span class="countdown" id="disconnect-countdown">60</span>
     </div>
 
@@ -2804,7 +2805,7 @@
         </svg>
     </button>
 
-    <h1><span class="red">Word</span> <span class="blue">Boxing</span> 🥊</h1>
+    <h1><span class="red">Word</span> <span class="blue">Boxing</span> ð¥</h1>
     
     <!-- Connection Status -->
     <div class="connection-status connected" id="connection-status">
@@ -2816,31 +2817,31 @@
         <!-- Phase: Lobby -->
         <div class="phase active" id="phase-lobby">
             <div class="lobby">
-                <div class="lobby-title">⚔️ Battle Arena</div>
+                <div class="lobby-title">âï¸ Battle Arena</div>
                 
                 <div class="lobby-divider">online multiplayer</div>
                 <div class="lobby-options">
                     <button class="lobby-btn create" onclick="showCreateOptions()">
-                        🥊 Create Game
+                        ð¥ Create Game
                     </button>
                     <button class="lobby-btn find" onclick="showFindGame()">
-                        🔍 Find Game <span class="rated-badge">Public</span>
+                        ð Find Game <span class="rated-badge">Public</span>
                     </button>
                     <button class="lobby-btn join" onclick="showJoinGame()">
-                        🎯 Join by Code
+                        ð¯ Join by Code
                     </button>
                 </div>
                 
                 <div class="lobby-divider">local play</div>
                 <div class="lobby-options">
                     <button class="lobby-btn local" onclick="startPassAndPlay()">
-                        📱 Two Players / One Device <span class="unrated-badge">Unrated</span>
+                        ð± Two Players / One Device <span class="unrated-badge">Unrated</span>
                     </button>
                 </div>
                 
                 <div class="lobby-options" style="margin-top: 20px;">
                     <button class="lobby-btn leaderboard" onclick="showLeaderboard()" style="background: linear-gradient(135deg, #4a3a00, #2a2200); border-color: var(--gold); color: var(--gold);">
-                        🏆 LEADERBOARD
+                        ð LEADERBOARD
                     </button>
                 </div>
             </div>
@@ -2849,7 +2850,7 @@
         <!-- Phase: Find Game (Public Lobby) -->
         <div class="phase" id="phase-find-game">
             <div class="lobby find-lobby">
-                <div class="lobby-title">🔍 Find a Game</div>
+                <div class="lobby-title">ð Find a Game</div>
                 <div class="lobby-subtitle">Join an open game or wait for a match</div>
                 
                 <div class="public-games-list" id="public-games-list">
@@ -2860,7 +2861,7 @@
                 </div>
                 
                 <div class="no-games-message" id="no-games-message" style="display: none;">
-                    <div class="no-games-icon">🥊</div>
+                    <div class="no-games-icon">ð¥</div>
                     <div class="no-games-text">No open games right now</div>
                     <div class="no-games-hint">Create your own and others will join!</div>
                 </div>
@@ -2875,19 +2876,19 @@
         <!-- Phase: Create Game Options -->
         <div class="phase" id="phase-create-options">
             <div class="lobby">
-                <div class="lobby-title">🥊 Create Game</div>
+                <div class="lobby-title">ð¥ Create Game</div>
                 <div class="lobby-subtitle">Choose how others can join</div>
                 
                 <div class="create-options">
                     <button class="create-option-btn public" onclick="createPublicGame()">
-                        <div class="option-icon">🌐</div>
+                        <div class="option-icon">ð</div>
                         <div class="option-title">Public Game</div>
                         <div class="option-desc">Anyone can find and join from the lobby</div>
                         <span class="rated-badge">Rated</span>
                     </button>
                     
                     <button class="create-option-btn private" onclick="createGame()">
-                        <div class="option-icon">🔒</div>
+                        <div class="option-icon">ð</div>
                         <div class="option-title">Private Game</div>
                         <div class="option-desc">Share the code with a specific friend</div>
                         <span class="rated-badge">Rated</span>
@@ -2901,7 +2902,7 @@
         <!-- Phase: Pass & Play - Pass to Red -->
         <div class="phase" id="phase-pass-red">
             <div class="waiting">
-                <div class="player-badge red">🥊 Red Corner</div>
+                <div class="player-badge red">ð¥ Red Corner</div>
                 <div style="font-size: 1.3rem; margin: 20px 0;">Pass the device to <strong style="color: var(--red-corner);">Red</strong></div>
                 <button class="btn btn-red" onclick="continueAsPlayer('red')" style="margin-top: 20px; font-size: 1.2rem; padding: 15px 40px;">I'm Red - Continue</button>
             </div>
@@ -2910,7 +2911,7 @@
         <!-- Phase: Pass & Play - Pass to Blue -->
         <div class="phase" id="phase-pass-blue">
             <div class="waiting">
-                <div class="player-badge blue">Blue Corner 🥊</div>
+                <div class="player-badge blue">Blue Corner ð¥</div>
                 <div style="font-size: 1.3rem; margin: 20px 0;">Pass the device to <strong style="color: var(--blue-corner);">Blue</strong></div>
                 <button class="btn btn-blue" onclick="continueAsPlayer('blue')" style="margin-top: 20px; font-size: 1.2rem; padding: 15px 40px;">I'm Blue - Continue</button>
             </div>
@@ -2942,10 +2943,10 @@
                             Share
                         </button>
                     </div>
-                    <div class="game-code-hint">📱 Send the code to start playing!</div>
+                    <div class="game-code-hint">ð± Send the code to start playing!</div>
                 </div>
                 <div class="game-code-display" id="public-game-info" style="display: none;">
-                    <div class="game-code-label">🌐 Listed in Public Lobby</div>
+                    <div class="game-code-label">ð Listed in Public Lobby</div>
                     <div class="game-code-hint" style="margin-top: 10px;">Players can find and join your game from the lobby.</div>
                 </div>
                 <div class="waiting-spinner"></div>
@@ -2955,12 +2956,12 @@
         </div>
 
         <!-- Copy Feedback -->
-        <div class="copy-feedback" id="copy-feedback">✓ Code Copied!</div>
+        <div class="copy-feedback" id="copy-feedback">â Code Copied!</div>
 
         <!-- Phase: Join Game -->
         <div class="phase" id="phase-join">
             <div class="lobby">
-                <div class="lobby-title">🎯 Join Game</div>
+                <div class="lobby-title">ð¯ Join Game</div>
                 <p class="instruction">Enter the 5-letter game code:</p>
                 <div class="join-section">
                     <div class="code-input" id="code-input">
@@ -2993,11 +2994,11 @@
                 <div class="lobby-title">Choose Game Mode</div>
                 <div class="lobby-options">
                     <button class="lobby-btn create" onclick="selectMode('beginner')">
-                        🥊 Beginner<br>
+                        ð¥ Beginner<br>
                         <span style="font-size: 0.8rem; opacity: 0.8;">Pick new word each round</span>
                     </button>
                     <button class="lobby-btn join" onclick="selectMode('advanced')">
-                        🏆 Advanced<br>
+                        ð Advanced<br>
                         <span style="font-size: 0.8rem; opacity: 0.8;">Plan all 3 words upfront</span>
                     </button>
                 </div>
@@ -3008,7 +3009,7 @@
         <!-- Scoreboard (shown during game) -->
         <div class="scoreboard" id="scoreboard" style="display: none;">
             <div class="player-score red">
-                <div class="player-name">🥊 Red</div>
+                <div class="player-name">ð¥ Red</div>
                 <div class="round-wins" id="red-wins">0</div>
             </div>
             <div class="round-indicator">
@@ -3016,7 +3017,7 @@
                 <div class="round-number" id="round-number">1</div>
             </div>
             <div class="player-score blue">
-                <div class="player-name">Blue 🥊</div>
+                <div class="player-name">Blue ð¥</div>
                 <div class="round-wins" id="blue-wins">0</div>
             </div>
         </div>
@@ -3052,7 +3053,7 @@
                 
                 <div class="plan-status" id="plan-status"></div>
                 <button class="btn btn-primary" id="submit-plan-btn" onclick="submitPlan()" disabled>Lock In All Words</button>
-                <button class="forfeit-btn" onclick="confirmForfeit()" style="margin-top: 30px;">🏳️ Forfeit Match</button>
+                <button class="forfeit-btn" onclick="confirmForfeit()" style="margin-top: 30px;">ð³ï¸ Forfeit Match</button>
             </div>
         </div>
 
@@ -3062,7 +3063,7 @@
                 <div class="waiting-spinner"></div>
                 <div class="waiting-text">Waiting for opponent to plan their words...</div>
                 <div class="waiting-subtext">You're all set! 3 words locked in.</div>
-                <button class="forfeit-btn" onclick="confirmForfeit()" style="margin-top: 30px;">🏳️ Forfeit Match</button>
+                <button class="forfeit-btn" onclick="confirmForfeit()" style="margin-top: 30px;">ð³ï¸ Forfeit Match</button>
             </div>
         </div>
 
@@ -3074,7 +3075,7 @@
                 <div class="word-input" id="word-input"></div>
                 <div class="word-score">Word Score: <span id="word-score">0</span> pts</div>
                 <button class="btn btn-primary" id="submit-word-btn" onclick="submitWord()" disabled>Submit Word</button>
-                <button class="forfeit-btn" onclick="confirmForfeit()" style="margin-top: 30px;">🏳️ Forfeit Match</button>
+                <button class="forfeit-btn" onclick="confirmForfeit()" style="margin-top: 30px;">ð³ï¸ Forfeit Match</button>
             </div>
         </div>
 
@@ -3083,7 +3084,7 @@
             <div class="waiting">
                 <div class="waiting-spinner"></div>
                 <div class="waiting-text">Waiting for opponent's word...</div>
-                <button class="forfeit-btn" onclick="confirmForfeit()" style="margin-top: 30px;">🏳️ Forfeit Match</button>
+                <button class="forfeit-btn" onclick="confirmForfeit()" style="margin-top: 30px;">ð³ï¸ Forfeit Match</button>
             </div>
         </div>
 
@@ -3115,7 +3116,7 @@
                     </div>
                 </div>
                 
-                <button class="forfeit-btn" onclick="confirmForfeit()">🏳️ Forfeit Match</button>
+                <button class="forfeit-btn" onclick="confirmForfeit()">ð³ï¸ Forfeit Match</button>
             </div>
         </div>
 
@@ -3123,7 +3124,7 @@
         <div class="phase" id="phase-waiting-turn">
             <div class="battle-area">
                 <div class="status-bar opponent-turn">
-                    <span>⏳ Opponent is thinking...</span>
+                    <span>â³ Opponent is thinking...</span>
                 </div>
                 
                 <div class="opponent-word">
@@ -3132,7 +3133,7 @@
                     <div class="revealed-count">Opponent sees <span id="waiting-revealed-count">0</span> of 5 letters in YOUR word</div>
                 </div>
                 
-                <button class="forfeit-btn" onclick="confirmForfeit()">🏳️ Forfeit Match</button>
+                <button class="forfeit-btn" onclick="confirmForfeit()">ð³ï¸ Forfeit Match</button>
             </div>
         </div>
 
@@ -3145,14 +3146,14 @@
                     <div>Their word: <span id="reveal-their-word">-----</span></div>
                 </div>
                 <div class="waiting-text" id="round-result-status">Waiting for next round...</div>
-                <button class="forfeit-btn" id="round-result-forfeit" onclick="confirmForfeit()" style="margin-top: 30px; display: none;">🏳️ Forfeit Match</button>
+                <button class="forfeit-btn" id="round-result-forfeit" onclick="confirmForfeit()" style="margin-top: 30px; display: none;">ð³ï¸ Forfeit Match</button>
             </div>
         </div>
 
         <!-- Phase: Match Result -->
         <div class="phase" id="phase-match-result">
             <div class="match-result">
-                <div class="trophy">🏆</div>
+                <div class="trophy">ð</div>
                 <div class="champion-title" id="champion-title">Champion!</div>
                 <div class="revealed-word">
                     Final Score: <span id="final-score">0 - 0</span>
@@ -3166,15 +3167,15 @@
                 </div>
                 <div id="add-friend-container" style="margin-top: 15px; display: none;">
                     <button class="btn btn-secondary" id="add-friend-btn" onclick="toggleFriend()" style="font-size: 0.9rem;">
-                        👤 Add Friend
+                        ð¤ Add Friend
                     </button>
                 </div>
                 <div id="rematch-notice" class="rematch-notice" style="display: none;">
-                    ⚔️ Opponent wants a rematch!
+                    âï¸ Opponent wants a rematch!
                 </div>
                 <div id="match-result-buttons">
                     <button class="btn btn-share" onclick="shareResults()" style="margin-top: 20px; background: linear-gradient(135deg, #1da1f2, #0d8ecf); border-color: #1da1f2;">
-                        📤 Share Results
+                        ð¤ Share Results
                     </button>
                     <button class="btn btn-primary" id="rematch-btn" onclick="requestRematch()" style="margin-top: 10px;">Rematch</button>
                     <button class="btn btn-secondary" id="exit-btn" onclick="exitToLobby()" style="margin-top: 10px;">Exit to Lobby</button>
@@ -3245,7 +3246,7 @@
     <!-- Leaderboard Modal -->
     <div class="leaderboard-modal" id="leaderboard-modal" onclick="closeLeaderboardModal(event)">
         <div class="leaderboard-content" onclick="event.stopPropagation()">
-            <h2>🏆 Leaderboard</h2>
+            <h2>ð Leaderboard</h2>
             <div class="leaderboard-filter">
                 <button class="filter-btn active" id="filter-all" onclick="setLeaderboardFilter('all')">All Players</button>
                 <button class="filter-btn" id="filter-friends" onclick="setLeaderboardFilter('friends')">Friends Only</button>
@@ -3260,11 +3261,11 @@
     <!-- Forfeit Confirmation Modal -->
     <div class="forfeit-modal" id="forfeit-modal" onclick="closeForfeitModal(event)">
         <div class="forfeit-content" onclick="event.stopPropagation()">
-            <h3>🏳️ Forfeit Match?</h3>
+            <h3>ð³ï¸ Forfeit Match?</h3>
             <p>Are you sure you want to forfeit this match?</p>
             <p>This will count as a <strong>loss</strong> and your opponent will win.</p>
             <div class="forfeit-warning" id="forfeit-penalty-warning" style="display: none;">
-                ⚠️ Since the battle has started, you'll receive an extra <strong>-25 rating penalty</strong> for forfeiting.
+                â ï¸ Since the battle has started, you'll receive an extra <strong>-25 rating penalty</strong> for forfeiting.
             </div>
             <div class="forfeit-buttons">
                 <button class="btn btn-secondary" onclick="closeForfeit()">Cancel</button>
@@ -3277,13 +3278,13 @@
     <div class="settings-modal" id="settings-modal" onclick="closeSettingsModal(event)">
         <div class="settings-content" onclick="event.stopPropagation()">
             <div class="settings-header">
-                <h3>📋 Menu</h3>
-                <button class="settings-close" onclick="closeSettings()">×</button>
+                <h3>ð Menu</h3>
+                <button class="settings-close" onclick="closeSettings()">Ã</button>
             </div>
             
             <!-- 1. GAME MODE (Difficulty equivalent for multiplayer) -->
             <div class="settings-section">
-                <div class="settings-section-title">🎮 Game Mode</div>
+                <div class="settings-section-title">ð® Game Mode</div>
                 <div class="settings-item">
                     <div>
                         <div class="settings-item-label">Default Mode</div>
@@ -3299,7 +3300,7 @@
 
             <!-- 2. DISPLAY -->
             <div class="settings-section">
-                <div class="settings-section-title">🎨 Display</div>
+                <div class="settings-section-title">ð¨ Display</div>
                 <div class="settings-item">
                     <div>
                         <div class="settings-item-label">Dark Mode</div>
@@ -3310,7 +3311,7 @@
 
             <!-- 3. SOUND -->
             <div class="settings-section">
-                <div class="settings-section-title">🔊 Sound</div>
+                <div class="settings-section-title">ð Sound</div>
                 <div class="settings-item">
                     <div>
                         <div class="settings-item-label">Sound Effects</div>
@@ -3329,7 +3330,7 @@
 
             <!-- 4. TUTORIAL -->
             <div class="settings-section">
-                <div class="settings-section-title">📖 Tutorial</div>
+                <div class="settings-section-title">ð Tutorial</div>
                 <div class="settings-item">
                     <div>
                         <div class="settings-item-label">Show on First Visit</div>
@@ -3338,26 +3339,26 @@
                 </div>
                 <div class="settings-item" style="cursor: pointer;" onclick="TutorialManager.restart(); toggleSettingsMenu();">
                     <div>
-                        <div class="settings-item-label">🎓 Replay Tutorial</div>
+                        <div class="settings-item-label">ð Replay Tutorial</div>
                     </div>
-                    <span style="color: var(--gold);">▶</span>
+                    <span style="color: var(--gold);">â¶</span>
                 </div>
             </div>
 
             <!-- 5. HOW TO PLAY / ABOUT -->
             <div class="settings-section">
-                <div class="settings-section-title">❓ Help</div>
+                <div class="settings-section-title">â Help</div>
                 <button class="settings-btn" onclick="showGameOverview()">
-                    <span>📖</span> How to Play
+                    <span>ð</span> How to Play
                 </button>
                 <button class="settings-btn" onclick="showAbout()">
-                    <span>ℹ️</span> About Word Boxing
+                    <span>â¹ï¸</span> About Word Boxing
                 </button>
             </div>
 
             <!-- 5.5. PLAIN MODE -->
             <div class="settings-section">
-                <div class="settings-section-title">📋 Plain Mode</div>
+                <div class="settings-section-title">ð Plain Mode</div>
                 <div class="settings-item">
                     <div>
                         <div class="settings-item-label">Plain Mode</div>
@@ -3370,7 +3371,7 @@
             <!-- 6. GAME INFO -->
             <div class="settings-version">
                 Word Boxing v1.0.0<br>
-                <span style="font-size: 0.7rem;">© 2026 RB Games</span>
+                <span style="font-size: 0.7rem;">Â© 2026 RB Games</span>
             </div>
         </div>
     </div>
@@ -3378,7 +3379,7 @@
     <!-- About Modal -->
     <div class="about-modal" id="about-modal" onclick="closeAboutModal(event)">
         <div class="about-content" onclick="event.stopPropagation()">
-            <h2><span class="red">Word</span> <span class="blue">Boxing</span> 🥊</h2>
+            <h2><span class="red">Word</span> <span class="blue">Boxing</span> ð¥</h2>
             <div class="about-tagline">A battle of wits and words!</div>
             
             <p class="about-text">
@@ -3390,7 +3391,7 @@
             </p>
             
             <div class="about-credits">
-                Built with ❤️ for word game enthusiasts
+                Built with â¤ï¸ for word game enthusiasts
             </div>
             
             <button class="btn btn-primary" onclick="closeAbout()" style="width: 100%; margin-top: 20px;">Got it!</button>
@@ -3400,15 +3401,15 @@
     <!-- Game Overview Modal -->
     <div class="overview-modal" id="overview-modal" onclick="closeOverviewModal(event)">
         <div class="overview-content" onclick="event.stopPropagation()">
-            <h2>📖 How to Play</h2>
+            <h2>ð How to Play</h2>
             
             <div class="overview-section">
-                <h3>🎯 Objective</h3>
+                <h3>ð¯ Objective</h3>
                 <p>Be the first to guess your opponent's secret 5-letter word! Win 2 out of 3 rounds to win the match.</p>
             </div>
             
             <div class="overview-section">
-                <h3>⚔️ Gameplay</h3>
+                <h3>âï¸ Gameplay</h3>
                 <ul>
                     <li>Each player picks a secret word for their opponent to guess</li>
                     <li>Take turns either <strong>guessing a letter</strong> or <strong>solving the word</strong></li>
@@ -3418,7 +3419,7 @@
             </div>
             
             <div class="overview-section">
-                <h3>💡 Strategy Tips</h3>
+                <h3>ð¡ Strategy Tips</h3>
                 <ul>
                     <li><strong>Word Selection:</strong> Use rare letters (J, Q, X, Z) to make your word harder to guess</li>
                     <li><strong>Letter Guessing:</strong> Start with common letters (E, A, R, S, T) to reveal patterns</li>
@@ -3427,7 +3428,7 @@
             </div>
             
             <div class="overview-section">
-                <h3>🎮 Game Modes</h3>
+                <h3>ð® Game Modes</h3>
                 <ul>
                     <li><strong>Beginner:</strong> Pick a new word each round</li>
                     <li><strong>Advanced:</strong> Plan all 3 words upfront - no letter can repeat across words!</li>
@@ -3443,7 +3444,7 @@
         </div>
     </div>
 
-    <div class="version">v1.0.0 • Word Boxing</div>
+    <div class="version">v1.0.0 â¢ Word Boxing</div>
 
     <script>
         // ============ GAME SHELF INTEGRATION MODULE v1.0.0 ============
@@ -3463,7 +3464,7 @@
                     this.gameId = gameId;
                     this.gameConfig = {
                         name: config.name || gameId,
-                        icon: config.icon || '🎮',
+                        icon: config.icon || 'ð®',
                         url: config.url || window.location.hostname,
                         version: config.version || '1.0.0',
                         type: config.type || 'daily',
@@ -3471,7 +3472,7 @@
                     };
                     this._initialized = true;
                     this._announcePresence();
-                    console.log(`🎮 Game Shelf Integration initialized for ${this.gameConfig.name}`);
+                    console.log(`ð® Game Shelf Integration initialized for ${this.gameConfig.name}`);
                 },
                 
                 reportComplete: function(result) {
@@ -3608,11 +3609,11 @@
 
         // Rank Tiers
         const RANK_TIERS = [
-            { name: 'Rookie', min: 0, max: 999, icon: '🥉', class: 'rookie' },
-            { name: 'Contender', min: 1000, max: 1199, icon: '🥈', class: 'contender' },
-            { name: 'Fighter', min: 1200, max: 1399, icon: '🥇', class: 'fighter' },
-            { name: 'Champion', min: 1400, max: 1599, icon: '🏆', class: 'champion' },
-            { name: 'Legend', min: 1600, max: 9999, icon: '👑', class: 'legend' }
+            { name: 'Rookie', min: 0, max: 999, icon: 'ð¥', class: 'rookie' },
+            { name: 'Contender', min: 1000, max: 1199, icon: 'ð¥', class: 'contender' },
+            { name: 'Fighter', min: 1200, max: 1399, icon: 'ð¥', class: 'fighter' },
+            { name: 'Champion', min: 1400, max: 1599, icon: 'ð', class: 'champion' },
+            { name: 'Legend', min: 1600, max: 9999, icon: 'ð', class: 'legend' }
         ];
 
         function getRankTier(rating) {
@@ -3860,7 +3861,7 @@
             
             // Show rating change
             const changeText = ratingChange >= 0 ? `+${ratingChange}` : `${ratingChange}`;
-            showMessage(`Rating: ${oldRating} → ${newRating} (${changeText})`, ratingChange >= 0 ? 'success' : 'error');
+            showMessage(`Rating: ${oldRating} â ${newRating} (${changeText})`, ratingChange >= 0 ? 'success' : 'error');
         }
 
         // ============ PROFILE MODAL ============
@@ -3961,7 +3962,7 @@
                                 <span class="friend-name">${friend.displayName || 'Player'}</span>
                                 <span class="friend-rating">${friend.rating || 1200}</span>
                             </div>
-                            <button class="friend-remove" onclick="removeFriend('${friend.odid}')" title="Remove friend">×</button>
+                            <button class="friend-remove" onclick="removeFriend('${friend.odid}')" title="Remove friend">Ã</button>
                         </div>
                     `).join('');
                 }
@@ -4048,13 +4049,13 @@
             if (isFriend(opponentId)) {
                 // Remove friend
                 await removeFriend(opponentId);
-                btn.textContent = '👤 Add Friend';
+                btn.textContent = 'ð¤ Add Friend';
                 btn.classList.remove('friend-added');
             } else {
                 // Add friend
                 const success = await addFriend(opponentId, opponentName, opponentRating);
                 if (success) {
-                    btn.textContent = '✓ Friends';
+                    btn.textContent = 'â Friends';
                     btn.classList.add('friend-added');
                 }
             }
@@ -4073,10 +4074,10 @@
             container.style.display = 'block';
             
             if (isFriend(gameState.opponentUserId)) {
-                btn.textContent = '✓ Friends';
+                btn.textContent = 'â Friends';
                 btn.classList.add('friend-added');
             } else {
-                btn.textContent = '👤 Add Friend';
+                btn.textContent = 'ð¤ Add Friend';
                 btn.classList.remove('friend-added');
             }
         }
@@ -4204,9 +4205,9 @@
                     const isMe = currentUser && entry.odid === currentUser.uid;
                     const isFriendEntry = isFriend(entry.odid);
                     const tier = getRankTier(entry.rating);
-                    const rankDisplay = index < 3 ? ['🥇', '🥈', '🥉'][index] : (index + 1);
+                    const rankDisplay = index < 3 ? ['ð¥', 'ð¥', 'ð¥'][index] : (index + 1);
                     const record = `${entry.wins}-${entry.losses}`;
-                    const friendIcon = isFriendEntry ? ' 👤' : '';
+                    const friendIcon = isFriendEntry ? ' ð¤' : '';
                     
                     return `
                         <li class="leaderboard-item ${isMe ? 'me' : ''} ${isFriendEntry ? 'friend' : ''}">
@@ -4365,7 +4366,7 @@
             if (!code) return;
             
             const shareData = {
-                title: '🥊 Word Boxing Challenge!',
+                title: 'ð¥ Word Boxing Challenge!',
                 text: `Join my Word Boxing game! Enter code: ${code}`,
                 url: window.location.href
             };
@@ -4466,7 +4467,7 @@
             steps: [
                 {
                     target: null,
-                    title: 'Welcome to Word Boxing! 🥊',
+                    title: 'Welcome to Word Boxing! ð¥',
                     description: 'A competitive 1v1 word puzzle game where you try to guess your opponent\'s secret word before they guess yours.',
                     position: 'center'
                 },
@@ -4582,7 +4583,7 @@
                 description.textContent = step.description;
 
                 // Update button text for last step
-                nextBtn.textContent = index === this.steps.length - 1 ? 'Start Playing! 🥊' : 'Next →';
+                nextBtn.textContent = index === this.steps.length - 1 ? 'Start Playing! ð¥' : 'Next â';
 
                 // Update progress dots
                 document.querySelectorAll('.progress-dot').forEach((dot, i) => {
@@ -5245,7 +5246,7 @@
                         <div class="game-card-details">
                             <div class="game-card-host">${escapeHtml(game.hostName)}</div>
                             <div class="game-card-meta">
-                                <span class="game-card-rating">⭐ ${game.hostRating || 1200}</span>
+                                <span class="game-card-rating">â­ ${game.hostRating || 1200}</span>
                                 <span class="game-card-time">${formatTimeAgo(game.createdAt)}</span>
                             </div>
                         </div>
@@ -5856,7 +5857,7 @@
                     const rematchBtn = document.getElementById('rematch-btn');
                     const rematchNotice = document.getElementById('rematch-notice');
                     if (rematchBtn) {
-                        rematchBtn.textContent = '✓ Accept Rematch';
+                        rematchBtn.textContent = 'â Accept Rematch';
                         rematchBtn.classList.add('pulse-glow');
                     }
                     if (rematchNotice) {
@@ -6000,7 +6001,7 @@
             document.getElementById('mode-badge-container').style.display = 'block';
             
             const titleEl = document.getElementById('planning-title');
-            titleEl.textContent = `${gameState.myRole === 'red' ? '🥊 Red' : 'Blue 🥊'} Corner - Plan Your 3 Words`;
+            titleEl.textContent = `${gameState.myRole === 'red' ? 'ð¥ Red' : 'Blue ð¥'} Corner - Plan Your 3 Words`;
             titleEl.className = `phase-title ${gameState.myRole}`;
             
             setupPlanningInputs();
@@ -6016,7 +6017,7 @@
             document.getElementById('mode-badge-container').style.display = 'block';
             
             const titleEl = document.getElementById('planning-title');
-            titleEl.textContent = `${gameState.myRole === 'red' ? '🥊 Red' : 'Blue 🥊'} Corner - Plan Your 3 Words`;
+            titleEl.textContent = `${gameState.myRole === 'red' ? 'ð¥ Red' : 'Blue ð¥'} Corner - Plan Your 3 Words`;
             titleEl.className = `phase-title ${gameState.myRole}`;
             
             setupPlanningInputs();
@@ -6170,7 +6171,7 @@
                 statusEl.className = 'plan-status';
                 submitBtn.disabled = true;
             } else {
-                statusEl.textContent = '✓ All words valid! No letters repeated across words.';
+                statusEl.textContent = 'â All words valid! No letters repeated across words.';
                 statusEl.className = 'plan-status success';
                 submitBtn.disabled = false;
             }
@@ -6350,7 +6351,7 @@
             resetBattleUI();
             
             const titleEl = document.getElementById('input-title');
-            titleEl.textContent = `${gameState.myRole === 'red' ? '🥊 Red' : 'Blue 🥊'} Corner - Enter Your Word`;
+            titleEl.textContent = `${gameState.myRole === 'red' ? 'ð¥ Red' : 'Blue ð¥'} Corner - Enter Your Word`;
             titleEl.className = `phase-title ${gameState.myRole}`;
             
             setupWordInput();
@@ -6682,10 +6683,10 @@
             
             if (gameState.isMyTurn) {
                 statusBar.className = 'status-bar your-turn';
-                statusText.textContent = '🥊 Your Turn!';
+                statusText.textContent = 'ð¥ Your Turn!';
             } else {
                 statusBar.className = 'status-bar opponent-turn';
-                statusText.textContent = '⏳ Opponent\'s Turn...';
+                statusText.textContent = 'â³ Opponent\'s Turn...';
             }
         }
 
@@ -6977,7 +6978,7 @@
             }
 
             const winnerColor = iWon ? gameState.myRole : (gameState.myRole === 'red' ? 'blue' : 'red');
-            document.getElementById('round-winner-title').textContent = `🎉 ${winnerColor.charAt(0).toUpperCase() + winnerColor.slice(1)} wins the round!`;
+            document.getElementById('round-winner-title').textContent = `ð ${winnerColor.charAt(0).toUpperCase() + winnerColor.slice(1)} wins the round!`;
             document.getElementById('round-winner-title').style.color = winnerColor === 'red' ? 'var(--red-corner)' : 'var(--blue-corner)';
 
             // In pass & play, show both words clearly
@@ -7075,7 +7076,7 @@
                     const changeText = change >= 0 ? `+${change}` : `${change}`;
                     const changeColor = change >= 0 ? '#4ade80' : '#f87171';
                     document.getElementById('rating-change-text').innerHTML = 
-                        `Rating: ${oldRating} → ${newRating} (<span style="color: ${changeColor}">${changeText}</span>)`;
+                        `Rating: ${oldRating} â ${newRating} (<span style="color: ${changeColor}">${changeText}</span>)`;
                     document.getElementById('rating-change-container').style.display = 'block';
                 } else {
                     document.getElementById('rating-change-container').style.display = 'none';
@@ -7129,7 +7130,7 @@
                 const changeText = change >= 0 ? `+${change}` : `${change}`;
                 const changeColor = change >= 0 ? '#4ade80' : '#f87171';
                 document.getElementById('rating-change-text').innerHTML = 
-                    `Rating: ${oldRating} → ${newRating} (<span style="color: ${changeColor}">${changeText}</span>)`;
+                    `Rating: ${oldRating} â ${newRating} (<span style="color: ${changeColor}">${changeText}</span>)`;
                 document.getElementById('rating-change-container').style.display = 'block';
             } else {
                 document.getElementById('rating-change-container').style.display = 'none';
@@ -7248,7 +7249,7 @@
             
             // Show rating change
             const penaltyNote = withPenalty ? ' (includes -25 forfeit penalty)' : '';
-            showMessage(`Rating: ${oldRating} → ${newRating} (${ratingChange})${penaltyNote}`, 'error');
+            showMessage(`Rating: ${oldRating} â ${newRating} (${ratingChange})${penaltyNote}`, 'error');
         }
         
         function showForfeitResult() {
@@ -7270,7 +7271,7 @@
                     const changeText = change >= 0 ? `+${change}` : `${change}`;
                     const changeColor = change >= 0 ? '#4ade80' : '#f87171';
                     document.getElementById('rating-change-text').innerHTML = 
-                        `Rating: ${userProfile.rating - change} → ${userProfile.rating} (<span style="color: ${changeColor}">${changeText}</span>)`;
+                        `Rating: ${userProfile.rating - change} â ${userProfile.rating} (<span style="color: ${changeColor}">${changeText}</span>)`;
                     document.getElementById('rating-change-container').style.display = 'block';
                 }
             } else {
@@ -7305,14 +7306,14 @@
                 const changeText = change >= 0 ? `+${change}` : `${change}`;
                 const changeColor = change >= 0 ? '#4ade80' : '#f87171';
                 document.getElementById('rating-change-text').innerHTML = 
-                    `Rating: ${oldRating} → ${newRating} (<span style="color: ${changeColor}">${changeText}</span>)`;
+                    `Rating: ${oldRating} â ${newRating} (<span style="color: ${changeColor}">${changeText}</span>)`;
                 document.getElementById('rating-change-container').style.display = 'block';
             } else {
                 document.getElementById('rating-change-container').style.display = 'none';
             }
             
             const title = document.getElementById('champion-title');
-            title.textContent = `You Win! 🏆`;
+            title.textContent = `You Win! ð`;
             title.className = `champion-title ${gameState.myRole}`;
             
             document.getElementById('final-score').textContent = 'Opponent forfeited';
@@ -7431,14 +7432,14 @@
                 const changeText = change >= 0 ? `+${change}` : `${change}`;
                 const changeColor = change >= 0 ? '#4ade80' : '#f87171';
                 document.getElementById('rating-change-text').innerHTML = 
-                    `Rating: ${oldRating} → ${newRating} (<span style="color: ${changeColor}">${changeText}</span>)`;
+                    `Rating: ${oldRating} â ${newRating} (<span style="color: ${changeColor}">${changeText}</span>)`;
                 document.getElementById('rating-change-container').style.display = 'block';
             } else {
                 document.getElementById('rating-change-container').style.display = 'none';
             }
             
             const title = document.getElementById('champion-title');
-            title.textContent = iWon ? 'You Win! 🏆' : 'You Lose 😔';
+            title.textContent = iWon ? 'You Win! ð' : 'You Lose ð';
             title.className = iWon ? `champion-title ${gameState.myRole}` : 'champion-title';
             document.getElementById('final-score').textContent = `${gameState.myWins} - ${gameState.opponentWins}`;
             
@@ -7674,13 +7675,13 @@
             const stats = JSON.parse(localStorage.getItem('wordBoxingStats') || '{}');
             
             // Generate grid
-            const grid = '🟩'.repeat(myWins) + '🟥'.repeat(oppWins) + '⬜'.repeat(3 - myWins - oppWins);
+            const grid = 'ð©'.repeat(myWins) + 'ð¥'.repeat(oppWins) + 'â¬'.repeat(3 - myWins - oppWins);
             
             // Result emoji
-            const resultEmoji = won ? '🏆' : '😤';
+            const resultEmoji = won ? 'ð' : 'ð¤';
             
             // Mode
-            const modeEmoji = gameState.mode === 'advanced' ? '🎯' : '👶';
+            const modeEmoji = gameState.mode === 'advanced' ? 'ð¯' : 'ð¶';
             const modeLabel = gameState.mode === 'advanced' ? 'Advanced' : 'Beginner';
             
             // Score line
@@ -7689,11 +7690,11 @@
             // Mode line with streak
             let modeLine = `${modeEmoji} ${modeLabel}`;
             if (stats.winStreak > 1) {
-                modeLine += ` · 🔥${stats.winStreak}`;
+                modeLine += ` Â· ð¥${stats.winStreak}`;
             }
             
             // Build share text
-            const shareText = `🥊 Word Boxing ${resultEmoji}
+            const shareText = `ð¥ Word Boxing ${resultEmoji}
 ${grid}
 ${scoreLine}
 ${modeLine}
@@ -7729,13 +7730,13 @@ wordboxing.com`;
             const stats = JSON.parse(localStorage.getItem('wordBoxingStats') || '{}');
 
             // Generate grid
-            const grid = '🟩'.repeat(myScore) + '🟥'.repeat(oppScore) + '⬜'.repeat(3 - myScore - oppScore);
+            const grid = 'ð©'.repeat(myScore) + 'ð¥'.repeat(oppScore) + 'â¬'.repeat(3 - myScore - oppScore);
 
             // Result emoji
-            const resultEmoji = iWon ? '🏆' : '😤';
+            const resultEmoji = iWon ? 'ð' : 'ð¤';
 
             // Mode
-            const modeEmoji = gameState.mode === 'advanced' ? '🎯' : '👶';
+            const modeEmoji = gameState.mode === 'advanced' ? 'ð¯' : 'ð¶';
             const modeLabel = gameState.mode === 'advanced' ? 'Advanced' : 'Beginner';
 
             // Score line
@@ -7744,11 +7745,11 @@ wordboxing.com`;
             // Mode line with streak
             let modeLine = `${modeEmoji} ${modeLabel}`;
             if (stats.winStreak > 1) {
-                modeLine += ` · 🔥${stats.winStreak}`;
+                modeLine += ` Â· ð¥${stats.winStreak}`;
             }
 
             // Build standardized share text
-            const shareText = `🥊 Word Boxing ${resultEmoji}
+            const shareText = `ð¥ Word Boxing ${resultEmoji}
 ${grid}
 ${scoreLine}
 ${modeLine}
@@ -8602,7 +8603,7 @@ wordboxing.com`;
             
             // Show result
             const title = document.getElementById('champion-title');
-            title.textContent = 'You Win! 🏆';
+            title.textContent = 'You Win! ð';
             title.className = `champion-title ${gameState.myRole}`;
             document.getElementById('final-score').textContent = 'Opponent disconnected';
             
@@ -8625,7 +8626,7 @@ wordboxing.com`;
             // Initialize Game Shelf Integration
             GameShelfIntegration.init('wordboxing', {
                 name: 'Word Boxing',
-                icon: '🥊',
+                icon: 'ð¥',
                 url: 'wordboxing.com',
                 version: '1.0.0',
                 type: 'multiplayer'
