@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="version" content="1.0.0">
+    <meta name="version" content="1.0.1">
     <title>Word Boxing ð¥</title>
-    <!-- Version 1.0.0 -->
+    <!-- Version 1.0.1 -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ð¥</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
@@ -3370,7 +3371,7 @@
 
             <!-- 6. GAME INFO -->
             <div class="settings-version">
-                Word Boxing v1.0.0<br>
+                Word Boxing v1.0.1<br>
                 <span style="font-size: 0.7rem;">Â© 2026 RB Games</span>
             </div>
         </div>
@@ -3392,6 +3393,35 @@
             
             <div class="about-credits">
                 Built with â¤ï¸ for word game enthusiasts
+            </div>
+            
+            <!-- Game Shelf Badge -->
+            <div style="text-align: center; padding: 20px 15px; background: linear-gradient(135deg, rgba(102,126,234,0.15) 0%, rgba(118,75,162,0.15) 100%); border-radius: 12px; margin-top: 20px;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 10px;">
+                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 40px; height: 40px;">
+                        <defs>
+                            <linearGradient id="gsBadgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea"/>
+                                <stop offset="100%" style="stop-color:#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                        <rect x="5" y="5" width="90" height="90" rx="20" fill="url(#gsBadgeGrad)"/>
+                        <g transform="rotate(-12, 35, 50)">
+                            <rect x="15" y="28" width="28" height="36" rx="4" fill="white"/>
+                            <circle cx="43" cy="46" r="6" fill="white"/>
+                            <text x="29" y="54" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#667eea" text-anchor="middle">G</text>
+                        </g>
+                        <g transform="rotate(12, 65, 50)">
+                            <rect x="57" y="28" width="28" height="36" rx="4" fill="rgba(255,255,255,0.9)"/>
+                            <circle cx="57" cy="46" r="6" fill="url(#gsBadgeGrad)"/>
+                            <text x="71" y="54" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#764ba2" text-anchor="middle">S</text>
+                        </g>
+                    </svg>
+                    <span style="font-size: 1.1rem; font-weight: 600; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">A Game Shelf Original</span>
+                </div>
+                <p style="font-size: 0.85rem; color: #888; margin: 0;">
+                    Track your daily puzzles at <a href="https://gameshelf.club" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 500;">gameshelf.club</a>
+                </p>
             </div>
             
             <button class="btn btn-primary" onclick="closeAbout()" style="width: 100%; margin-top: 20px;">Got it!</button>
@@ -3444,13 +3474,13 @@
         </div>
     </div>
 
-    <div class="version">v1.0.0 â¢ Word Boxing</div>
+    <div class="version">v1.0.1 â¢ Word Boxing</div>
 
     <script>
-        // ============ GAME SHELF INTEGRATION MODULE v1.0.0 ============
+        // ============ GAME SHELF INTEGRATION MODULE v1.0.1 ============
         (function() {
             'use strict';
-            const GAMESHELF_VERSION = '1.0.0';
+            const GAMESHELF_VERSION = '1.0.1';
             if (window.GameShelfIntegration) return;
             
             window.GameShelfIntegration = {
@@ -3466,7 +3496,7 @@
                         name: config.name || gameId,
                         icon: config.icon || 'ð®',
                         url: config.url || window.location.hostname,
-                        version: config.version || '1.0.0',
+                        version: config.version || '1.0.1',
                         type: config.type || 'daily',
                         ...config
                     };
@@ -3478,7 +3508,7 @@
                 reportComplete: function(result) {
                     if (!this._initialized) return null;
                     const payload = this._buildPayload(result);
-                    this._storeResult(payload);
+                    // Removed: this._storeResult(payload) - copy/paste is now standard
                     this._dispatchEvents(payload);
                     return payload;
                 },
@@ -8619,7 +8649,7 @@ wordboxing.com`;
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Word Boxing v1.0.0 - Boxing bell sounds');
+            console.log('Word Boxing v1.0.1 - Boxing bell sounds');
             console.log('Device ID:', deviceId);
             console.log('Firebase ready:', isFirebaseReady);
 
@@ -8628,7 +8658,7 @@ wordboxing.com`;
                 name: 'Word Boxing',
                 icon: 'ð¥',
                 url: 'wordboxing.com',
-                version: '1.0.0',
+                version: '1.0.1',
                 type: 'multiplayer'
             });
 
