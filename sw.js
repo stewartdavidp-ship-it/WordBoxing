@@ -2,10 +2,10 @@
  * Word Boxing PWA Service Worker
  * Version: 1.0.2
  */
-const CACHE_VERSION = 'v1.0.4';
+const CACHE_VERSION = 'v1.0.3';
 const CACHE_NAME = `wordboxing-pwa-${CACHE_VERSION}`;
 
-const CACHE_FILES = ['/', '/index.html', '/manifest.json'];
+const CACHE_FILES = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(CACHE_FILES)));
@@ -43,7 +43,7 @@ self.addEventListener('fetch', (event) => {
                     caches.open(CACHE_NAME).then((c) => c.put(event.request, response.clone()));
                 }
                 return response;
-            }).catch(() => event.request.mode === 'navigate' ? caches.match('/index.html') : new Response('Offline', { status: 503 }));
+            }).catch(() => event.request.mode === 'navigate' ? caches.match('./index.html') : new Response('Offline', { status: 503 }));
         })
     );
 });
