@@ -1,0 +1,4 @@
+Word Boxing v1.0.3 - PWA Path Fix
+=================================
+Fixed 404 errors when opening as PWA on GitHub Pages.
+Changed absolute paths (/) to relative paths (./) in manifest.json and sw.js.
